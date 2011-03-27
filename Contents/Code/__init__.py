@@ -314,20 +314,21 @@ def DrMcNinja(sender):
 def DominicDeegan(sender):
 	holes = [1237, 1242, 1247, 1256, 1270, 1293, 1320, 1340, 1342, 1357, 1369, 1414, 1415, 1530, 1482, 1582, 1583, 1593, 1629, 1645, 1651, 1704, 1713, 1828, 1882, 2080, 2103, 2144, 2201, 2225, 2226, 2294, 2325, 2333, 2335, 2360, 2385]
 	dirTitle = 'Dominic Deegan'
-	archiveURL = 'http://www.dominic-deegan.com/'
+	archiveURL = 'http://www.dominic-deegan.com/archive.php?year=%i'
 	
-	archiveXPath = '//div[@class="comic"]/img'
-	imgURL = 'http://www.dominic-deegan.com/comic.php?id=%s'
+	archiveXPath = '//a[starts-with(@href, "view.php?")]'
+	imgURL = 'http://www.dominic-deegan.com/comics/%s%s%s.gif'
 	
 	hasOldestFirst = True
 	
 	dir = MediaContainer(title1=dirTitle)
-	lastID = XML.ElementFromURL(archiveURL, True).xpath(archiveXPath)[0].get('src').split('=')[1].split('&')[0]
-	for id in range(2, int(lastID)):
-		if (id-1) in holes: continue
-		title = str(id - 1)
-		comicURL = imgURL % id
-		dir.Append(Function(PhotoItem(getComicMime, title=title, thumb=Function(getComicMime, url=comicURL, mime='image/png')), url=comicURL, mime='image/png'))
+	for year in range(2002, datetime.datetime.now().year + 1):
+		for comic in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+			href = comic.get('href')
+			year, month, day = re.search(r'(\d{4})-(\d\d)-(\d\d)', href).groups()
+			title = '%s-%s-%s' % (year, month, day)
+			comicURL = imgURL % (year, month, day)
+			dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
 	
