@@ -1088,30 +1088,21 @@ def TheSpaceBetween(sender):
 
 def ThreePanelSoul(sender):
 	dirTitle = 'Three Panel Soul'
-	archiveXPath = '//a[starts-with(@href, "view.php?date=")]'
-	imgURL = 'http://www.threepanelsoul.com/comics/%s.gif'
-	imgXPath = '//span[@class="rss-content"]//img'
+	archiveURL = 'http://threepanelsoul.com/'
+	archiveXPath = '//h2[text()="Monthly Archives"]/following-sibling::ul/li/a'
+	monthlyArchiveXPath = '//div[@class="comicarchiveframe"]/a'
+	
+	imgXPath = '//div[@id="comic"]/img'
 	
 	hasOldestFirst = True
 	
-	#http://www.threepanelsoul.com/comics/007.gif
 	dir = MediaContainer(title1=dirTitle)
-	page = XML.ElementFromURL('http://www.threepanelsoul.com/archive.php?year=2006', True)
-	for comic in page.xpath('//a[starts-with(@href, "view.php?date=")]'):
-		title = comic.get('title')
-		comicURL = imgURL % comic.get('href').split('=')[-1].replace('-', '')
-		dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))  
-	
-	#lastID = XML.ElementFromURL(archiveURL, True).xpath(archiveXPath)[0].get('src').split('/')[-1].split('.')[0]
-	
-	cIndex = 4
-	for year in range(2007, Datetime.Now().year + 1):
-		for comic in XML.ElementFromURL('http://www.threepanelsoul.com/archive.php?year=%i' % year, True).xpath(archiveXPath):
-			Log(str(cIndex) + comic.get('href'))
-			title = comic.get('title')
-			comicURL = urlparse.urljoin('http://www.threepanelsoul.com/', comic.get('href'))
+	for monthLink in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+		for comic in XML.ElementFromURL(monthLink.get('href'), True).xpath(monthlyArchiveXPath):
+			title = comic.xpath('./h3')[0].text
+			comicURL = comic.get('href')
+			thumbURL = comic.xpath('./img')[0].get('src')
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-			cIndex += 1
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
 	
