@@ -2,16 +2,21 @@ from PMS import *
 from PMS.Objects import *
 from PMS.Shortcuts import *
 
-import urlparse
 import mimetypes
 import re
-import httplib
-import sys
+import urlparse
 
 PLUGIN_PREFIX = '/photos/webcomics'
 CACHE_1YEAR = 365 * CACHE_1DAY
-####################################################################################################
 
+kSingleArchive = 1
+kMultiArchive = 2
+kMultiAndMainArchive = 3
+kWhileArchive = 4
+kArchiveRangedIDs = 5
+
+####################################################################################################  
+  
 def Start():
 	Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, L('Webcomics'), 'icon-default.png', 'art-default.png')
 	
@@ -26,7 +31,7 @@ def Start():
 
 def MainMenu():
 	dir = MediaContainer(title=L('Webcomics'), viewGroup='_InfoList')
-	for handler, title, thumb, art, subtitle, summary in getComics():
+	for handler, title, thumb, art, subtitle, summary in getComicList():
 		dir.Append(Function(DirectoryItem(handler, title=title, thumb=R('icon-default.png'), art=R(art), summary=summary, subtitle=subtitle)))
 	dir.Append(PrefsItem(title='Preferences', thumb=R('icon-prefs.png')))
 	return dir
@@ -43,24 +48,10 @@ def CreateDict():
 	Dict.Set('DrMcNinja.lastPage', 0)
 ####################################################################################################  
 
-def urlExists(theURL):
-	url = urlparse.urlparse(theURL)
-	if url[0] != 'http':
-		print 'Unknown url scheme %s' % url[0]
-		return False
-	
-	conn = httplib.HTTPConnection(url[1])
-	conn.request("GET", url[2])
-	r1 = conn.getresponse()
-	return r1.status == 200
- 
-
-####################################################################################################  
-
 def getComic(url, sender=None):
 	urlEscaped = url.replace(' ', '%20')
-	if HTTP.__cache.has_key(urlEscaped):
-		return DataObject(HTTP.__cache[url]['Content'], mimetypes.guess_type(urlEscaped))
+#	if HTTP.__cache.has_key(urlEscaped):
+#		return DataObject(HTTP.__cache[url]['Content'], mimetypes.guess_type(urlEscaped))
 	return DataObject(HTTP.Request(urlEscaped, cacheTime=CACHE_1YEAR), mimetypes.guess_type(urlEscaped))
 
 def getExtComic(url, sender=None):
@@ -69,8 +60,8 @@ def getExtComic(url, sender=None):
 	urls = list()
 	for ext in ['png', 'gif', 'jpg', 'JPG']:
 		newURL = baseURL + '.' + ext
-		if HTTP.__cache.has_key(newURL):
-			return DataObject(HTTP.__cache[newURL]['Content'], mimetypes.guess_type(newURL))
+#		if HTTP.__cache.has_key(newURL):
+#			return DataObject(HTTP.__cache[newURL]['Content'], mimetypes.guess_type(newURL))
 		urls.append(newURL)
 		
 	# here we have no cached copy
@@ -97,9 +88,7 @@ def getComicFromPageWithXPaths(url, xpaths, sender=None):
 			img = imgs[0].get('src')
 			return getComic(img)
 
-
-####################################################################################################  
-####################################################################################################  
+####################################################################################################
 
 def AppleGeeks(sender):
 	dirTitle = 'AppleGeeks 3.0'
@@ -115,7 +104,7 @@ def AppleGeeks(sender):
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################  
@@ -134,7 +123,7 @@ def AppleGeeksLite(sender):
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 	
@@ -172,7 +161,7 @@ def BetweenFailures(sender):
 			title = comic.xpath('./h2/a')[0].text
 			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if not Prefs.Get('oldestFirst'):
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	Dict.Set('BetweenFailures.lastPage', int(indexURL.split('/')[-2]))
 	
@@ -193,7 +182,7 @@ def Catena(sender):
 		comicURL =  img.get('href')
 		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 
 	return dir
 
@@ -221,7 +210,7 @@ def CtrlAltDel(sender):
 			comicURL = imgURL % img.get('href').split('/')[-1]
 			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -246,7 +235,7 @@ def CyanideAndHappiness(sender):
 		title = comicURL.split('/')[-2]
 		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -271,7 +260,7 @@ def DanAndMab(sender):
 				comicURL = imgURL % img.get('href').split('Vol_')[1].split('.')[0].lstrip('0').zfill(2)
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -318,7 +307,7 @@ def DrMcNinja(sender):
 					pageIndex += 1
 	Dict.Set('DrMcNinja.lastPage', lastPage)
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -342,7 +331,7 @@ def DominicDeegan(sender):
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComicMime, title=title, thumb=Function(getComicMime, url=comicURL, mime='image/png')), url=comicURL, mime='image/png'))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -363,7 +352,7 @@ def DuelingAnalogs(sender):
 		comicURL = imgURL %  '-'.join(href[4:7])
 		dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -390,7 +379,7 @@ def EerieCuties(sender):
 			comicURL = imgURL % title
 			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -431,7 +420,7 @@ def ErrantStory(sender):
 			
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
 	if not Prefs.Get('oldestFirst'):
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	Dict.Set('lastPage', int(indexURL.split('/')[-1]))
 	
@@ -457,7 +446,7 @@ def ExterminatusNow(sender):
 		dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
 #		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=href, xpath=imgXPath)), url=href, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -479,7 +468,7 @@ def EV(sender):
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -498,7 +487,7 @@ def FlakyPastry(sender):
 		comicURL = urlparse.urljoin(archiveURL, img.get('href'))
 		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 
 	return dir
 
@@ -526,7 +515,7 @@ def Flipside(sender):
 			comicURL = urlparse.urljoin(archiveURL, comic.get('href'))
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -549,7 +538,7 @@ def GingersBread(sender):
 			comicURL = imgURL % (title, img.text.split(' ')[-1])
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -578,7 +567,7 @@ def GirlGenius(sender):
 		
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 ####################################################################################################
@@ -599,7 +588,7 @@ def GirlsWithSlingshots(sender):
 		comicURL = imgURL % str(id).zfill(3)
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -626,7 +615,7 @@ def Goats(sender):
 			comicURL = 'http://www.goats.com/comix/%s/goats%s.%s' % (id[:4], id, ext)
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
 		if not Prefs.Get('oldestFirst'):
-			dir.__items__.reverse()
+			dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -647,7 +636,7 @@ def Goblins(sender):
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getGoblins, title=title, thumb=Function(getGoblins, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 def getGoblins(url, sender=None):
@@ -680,31 +669,34 @@ def GunnerkriggCourt(sender):
 		
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 ####################################################################################################
 
 def LasLindas(sender):
 	dirTitle = 'Las Lindas'
-	archiveURL = 'http://laslindas.katbox.net/index.php?view=archive'
-	archiveXPath = '//div[starts-with(@id, "archive_")]//a'
-	imgURL = 'http://laslindas.katbox.net/istrip_files/strips/%s.jpg'
-	
+	archiveURL = 'http://laslindas.katbox.net/?page_id=2&cat=5'
+	archiveXPath = '//section[starts-with(@id, "archive_")]//a'
+	imgURL1 = 'http://laslindas.katbox.net/wp-content/uploads/2011/01/%s%s%s.jpg'
+	imgURL2 = 'http://laslindas.katbox.net/wp-content/uploads/2011/01/%s%s%s.JPG'
+	imgURL3 = 'http://laslindas.katbox.net/wp-content/uploads/%s/%s/las_lindas%i.jpg'
 	hasOldestFirst = False
 	dir = MediaContainer(title1=dirTitle)
 
 	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		#######################################################
-		idComponents = comic.text.split('[')[1].split(']')[0].split('/')
-		idComponents.reverse()
-		id = ''.join(idComponents)
+		index, day, month, year = re.match(r'Comic (\d+) (\d+)/(\d+)/(\d+)', comic.text).groups()
 		title = comic.text
-		#######################################################
-		comicURL = imgURL % id
-		dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
+		index = int(index)
+		if 1 < index < 31 or 278 < index < 304:
+			comicURL = imgURL1 % (year, month, day)
+		elif index > 303:
+			comicURL = imgURL3 % (year, month, index + 6)
+		else:
+			comicURL = imgURL2 % (year, month, day)
+		dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 ####################################################################################################
@@ -730,7 +722,7 @@ def LeastICouldDo(sender):
 			comicURL = imgURL % title
 			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 	
@@ -749,7 +741,7 @@ def Level99(sender):
 		comicURL = img.get('href')
 		dir.Append(Function(PhotoItem(getComicFromPageWithXPaths, title=title, thumb=Function(getComicFromPageWithXPaths, url=comicURL, xpaths=[imgXPath, imgXPath2])), url=comicURL, xpaths=[imgXPath, imgXPath2]))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -771,7 +763,7 @@ def LookingForGroup(sender):
 			comicURL = imgURL % img.xpath('./img')[0].get('src').split('/')[-1]
 			dir.Append(Function(PhotoItem(getComicMime, title=title, thumb=Function(getComicMime, url=comicURL, mime='image/gif')), url=comicURL, mime='image/gif'))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 	
@@ -790,7 +782,7 @@ def MAGISA(sender):
 		title = archive.text
 		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 	
@@ -813,7 +805,7 @@ def MegaTokyo(sender):
 			comicURL = imgURL % img.get('href').split('/')[-1].zfill(4)
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
 	if not Prefs.Get('oldestFirst'):
-		dir.__items__.reverse()
+		dir.Reverse()
 	dir.Append(PrefsItem(title='Preferences', thumb=R('icon-prefs.png')))
 	return dir
 
@@ -849,7 +841,7 @@ def MenageATrois(sender):
 		
 		
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 ####################################################################################################
@@ -869,7 +861,7 @@ def Misfile(sender):
 			comicURL = imgURL % img.get('href').split('=')[-1]
 			dir.Append(Function(PhotoItem(getComicMime, title=title, thumb=Function(getComicMime, url=comicURL, mime='image/png')), url=comicURL, mime='image/png'))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 ####################################################################################################
@@ -889,7 +881,7 @@ def PeterAndCompany(sender):
 		comicURL = imgURL %  '-'.join(href[3:6])
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -903,7 +895,7 @@ def QuestionableContent(sender):
 		title = comic.text
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('Reverse'):
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -946,7 +938,7 @@ def SchoolBites(sender):
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 ####################################################################################################
@@ -966,7 +958,7 @@ def SequentialArt(sender):
 		comicURL = imgURL % str(id).zfill(4)
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 	
@@ -988,7 +980,7 @@ def Sinfest(sender):
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComicFromPage, title=comic.text, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -1012,7 +1004,7 @@ def SlightlyDamned(sender):
 		
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 ####################################################################################################
@@ -1046,7 +1038,7 @@ def SomethingPositive(sender):
 			comicURL = urlparse.urljoin(archive, img.get('href'))
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()  
+		dir.Reverse()  
 	return dir
 	
 ####################################################################################################
@@ -1067,7 +1059,7 @@ def SomewhereDifferent(sender):
 			comicURL = imgURL % img.get('href').split('.')[0]
 			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 ####################################################################################################
@@ -1087,7 +1079,7 @@ def TheSpaceBetween(sender):
 		title = comic.text
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -1119,7 +1111,7 @@ def ThreePanelSoul(sender):
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 			cIndex += 1
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	
 	return dir
 
@@ -1137,7 +1129,7 @@ def TwoKinds(sender):
 		comicURL = comic.get('href')
 		dir.Append(Function(PhotoItem(getComicFromPage, title=comic.text, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -1159,7 +1151,7 @@ def VGCats(sender):
 		title = re.sub('[\r\n ]+', r' ', title)
 		dir.Append(Function(PhotoItem(getVGCats, title=title, thumb=Function(getVGCats, url=comicURL)), url=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 	
 def getVGCats(url, sender=None):
@@ -1188,7 +1180,7 @@ def XKCD(sender):
 			title = comic.text
 		dir.Append(Function(PhotoItem(getComicFromPageWithXPaths, title=title, thumb=Function(getComicFromPageWithXPaths, url=comicURL, xpaths=imgXPaths)), url=comicURL, xpaths=imgXPaths))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
@@ -1216,12 +1208,12 @@ def EightBitTheater(sender):
 			title = page.get('title')
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.__items__.reverse()
+		dir.Reverse()
 	return dir
 
 ####################################################################################################
 
-def getComics():
+def getComicList():
 	return [
 		[EightBitTheater, "8-bit Theater", "icon-8BitTheater.png", "art-8BitTheater.png", "Fantasy", "Best description is probably a Final Fantasy parody. We're talking old-school Final Fantasy, with the main characters being Fighter, Red Mage, Theif, and Black Mage. Supposedly, they're destined to save the world. But one's an idiot, another's considered delirious, the third a greedy kleptomaniac, and the final one a stabby, murderous psychopath. Nothing seems to go right for them, but the result is pure comedy gold. If you don't find this at least mildly funny, check yourself into an asylum. And last but not least, a quote:\n\"What part of being stabbed do you not understand?\" - Black Mage"],
 		[AppleGeeks, "Apple Geeks", "icon-AppleGeeks.png", "art-AppleGeeks.png", "Geeky", "Follow the adventue's of Hawk as he struggles to survive as a Mac user in a World ruled by Windows."],
