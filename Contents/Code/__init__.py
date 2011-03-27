@@ -363,12 +363,21 @@ def EerieCuties(sender):
 	archiveXPath = '//a[starts-with(@href, "/d/")]'
 	
 	imgURL = 'http://www.eeriecuties.com/comics/ec%sa.jpg'
+	imgURL2 = 'http://www.eeriecuties.com/comics/ec%s.png'
 	hasOldestFirst = True
 	
 	dir = MediaContainer(title1=dirTitle)
+	imgs = list()
 	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		title = img.get('href').split('/')[-1].split('.')[0]
-		comicURL = imgURL % title
+		src = img.get('href')
+		if src not in imgs: imgs.append(src)
+	
+	for img in imgs:
+		title = img.split('/')[-1].split('.')[0]
+		if int(title) > 20101101:
+			comicURL = imgURL2 % title
+		else:
+			comicURL = imgURL % title
 		if title == '20090610':
 			comicURL = comicURL[:-5] + '.jpg'
 		dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
