@@ -191,28 +191,22 @@ def Catena(sender):
 
 def CtrlAltDel(sender):
 	dirTitle = 'Ctrl+Alt+Del'
-	archiveURL = 'http://www.cad-comic.com/cad/archive'
-	archiveXPath = '//h1/a'
-	archive2XPath = '//div[@class = "post"]/a' 
+	archiveURL = 'http://www.cad-comic.com/cad/archive/%i'
+	archiveXPath = '//div[@class = "post"]/a'
+	pageXPath = '//img[contains(@src, "/comics/")]'
+	base = 'http://www.cad-comic.com/'
 	imgURL = 'http://www.cad-comic.com/comics/cad/%s.jpg'
 	hasOldestFirst = False
 
 	dir = MediaContainer(title1=dirTitle)
 
-	archives = list()
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		archives.append(urlparse.urljoin(archiveURL, archive.get('href')))
-	archives.append(archiveURL)
-	
-	for archive in archives:
-		page = XML.ElementFromURL(archive, True)
-		for img in page.xpath(archive2XPath):
-			title = img.text
-			comicURL = imgURL % img.get('href').split('/')[-1]
-			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
+	for year in range(2002, datetime.datetime.now().year + 1):
+		for comic in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+			title = comic.text
+			comicURL = urlparse.urljoin(base, comic.get('href'))
+			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=pageXPath)), url=comicURL, xpath=pageXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
-	
 	return dir
 
 ####################################################################################################
