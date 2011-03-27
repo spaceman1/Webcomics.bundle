@@ -362,24 +362,18 @@ def EerieCuties(sender):
 	archiveURL = 'http://www.eeriecuties.com/archive.html'
 	archiveXPath = '//a[starts-with(@href, "/d/")]'
 	
-	imgURL = 'http://www.eeriecuties.com/comics/ec%s.jpg'
+	imgURL = 'http://www.eeriecuties.com/comics/ec%sa.jpg'
 	hasOldestFirst = True
 	
 	dir = MediaContainer(title1=dirTitle)
 	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
 		title = img.get('href').split('/')[-1].split('.')[0]
-		
+		comicURL = imgURL % title
 		if title == '20090610':
-			comicURL = imgURL % (title + 'a')
-			dir.Append(Function(PhotoItem(getComic, title=title+'a', thumb=Function(getComic, url=comicURL)), url=comicURL))
-			comicURL = imgURL % (title + 'b')
-			dir.Append(Function(PhotoItem(getComic, title=title+'b', thumb=Function(getComic, url=comicURL)), url=comicURL))
-		else:
-			comicURL = imgURL % title
-			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
+			comicURL = comicURL[:-5] + '.jpg'
+		dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
-	
 	return dir
 
 ####################################################################################################
