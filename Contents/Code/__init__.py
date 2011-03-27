@@ -338,18 +338,18 @@ def DominicDeegan(sender):
 
 def DuelingAnalogs(sender):
 	dirTitle = 'Dueling Analogs'
-	archiveURL = 'http://www.duelinganalogs.com/archive/'
-	archiveXPath = '//table[@class="month-table"]//a'
-	
-	imgURL = 'http://www.duelinganalogs.com/comics/%s.jpg'
-	hasOldestFirst = False
-
+	archiveURL = 'http://www.duelinganalogs.com/archive/?archive_year=%i'
+	archiveXPath = '//ul[@class="monthly"]/li/a'
+	imgXPath = '//div[@id="comic"]/img'
+	hasOldestFirst = True
+	holes = set(['super-happy-new-year-world', 'scribblenots', 'the-kojima-code', 'istalkher', 'pong-solitaire', 'super-mario-bros-leftovers', 'dear-final-fantasy-xiii', 'mega-man-10-easy-peasy-lemon-squeezy'])
 	dir = MediaContainer(title1=dirTitle)
-	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		title = img.text
-		href = img.get('href').split('/')
-		comicURL = imgURL %  '-'.join(href[4:7])
-		dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
+	for year in range(2005, datetime.datetime.now().year + 1):
+		for img in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+			title = img.text
+			comicURL = img.get('href')
+			if comicURL.split('/')[-2] in holes: continue
+			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
 	
