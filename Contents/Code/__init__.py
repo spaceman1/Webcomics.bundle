@@ -5,6 +5,7 @@ from PMS.Shortcuts import *
 import mimetypes
 import re
 import urlparse
+import datetime
 
 PLUGIN_PREFIX = '/photos/webcomics'
 CACHE_1YEAR = 365 * CACHE_1DAY
@@ -218,7 +219,8 @@ def CtrlAltDel(sender):
 
 def CyanideAndHappiness(sender):
 	dirTitle = 'Cyanide and Happiness'
-	archiveURL = 'http://www.explosm.net/comics/archive/'
+	archiveURL = 'http://www.explosm.net/comics/archive/%i/'
+	base = 'http://www.explosm.net/'
 	archiveXPath = '//a[starts-with(@href, "/comics/")]'
 	imgXPath = '//img[@alt="Cyanide and Happiness, a daily webcomic"]'
 	hasOldestFirst = True
@@ -227,15 +229,17 @@ def CyanideAndHappiness(sender):
 	holes = list()
 	for movie in XML.ElementFromURL('http://www.explosm.net/movies/', True).xpath('//a[starts-with(@href, "/comics/")]'):
 		holes.append(movie.get('href'))
-		
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		href = comic.get('href')
-		if href in holes: continue
-		comicURL = urlparse.urljoin(archiveURL, href)
-		title = comicURL.split('/')[-2]
-		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
-		dir.Reverse()
+	
+	for year in range(2005, datetime.datetime.now().year + 1):
+		for comic in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+			href = comic.get('href')
+			if href.startswith('/comics/archive'): continue
+			if href in holes: continue
+			comicURL = urlparse.urljoin(base, href)
+			title = comicURL.split('/')[-2]
+			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
+		if Prefs.Get('oldestFirst') != hasOldestFirst:
+			dir.Reverse()
 	return dir
 
 ####################################################################################################
