@@ -576,19 +576,24 @@ def GirlGenius(sender):
 
 def GirlsWithSlingshots(sender):
 	dirTitle = 'Girls with Slingshots'
-	archiveURL = 'http://www.daniellecorsetto.com/gws.html'
-	
-	archiveXPath = '//div[@id="gwsblog"]/p/img'
-	imgURL = 'http://www.daniellecorsetto.com/images/gws/GWS%s.jpg'
-	
+	archiveURL = 'http://www.girlswithslingshots.com/archive/?archive_year=%i'
+	archiveXPath = '//td[@class="archive-title"]/parent::tr'
+	imgURL = 'http://www.girlswithslingshots.com/comics/%s-%s-%s-%s.jpg'
 	hasOldestFirst = True
+	months = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 	dir = MediaContainer(title1=dirTitle)
 	
-	lastID = XML.ElementFromURL(archiveURL, True).xpath(archiveXPath)[0].get('src').split('/GWS')[1].split('.')[0]
-	for id in range(1, int(lastID)):
-		title = str(id)
-		comicURL = imgURL % str(id).zfill(3)
-		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
+	for year in range(2004, datetime.datetime.now().year + 1):
+		comics = list()
+		for comic in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+			date = comic.xpath('./td[@class="archive-date"]')[0].text
+			month = str(months.index(date.split(' ')[0])).zfill(2)
+			day = date.split(' ')[1].zfill(2)
+			title = comic.xpath('./td[@class="archive-title"]/a')[0].text
+			comicURL = imgURL % (year, month, day, title)
+			comics.append(PhotoItem(comicURL, title=title, thumb=comicURL))
+		comics.reverse()
+		for item in comics: dir.Append(item)
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
 	
