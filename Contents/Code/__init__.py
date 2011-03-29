@@ -607,33 +607,24 @@ def Goats(sender):
 
 def Goblins(sender):
 	dirTitle = 'Goblins'
-	archiveURL = 'http://goblins.keenspot.com/archives.html'
-	archiveXPath = '//div[@class="PageList"]//a'
-	imgURL = 'http://goblinscomic.com/comics/%s'
+	archiveURL = 'http://www.goblinscomic.com/archive/'
+	archiveXPath = '//div[@class="post-page"]//a'
+	imgURL = 'http://www.goblinscomic.com/comics/%s.jpg'
+	
 	hasOldestFirst = True
 
 	dir = MediaContainer(title1=dirTitle)
 	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		#######################################################
-		id = comic.get('href').split('/')[-1].split('.')[0]
+		id = comic.get('href').split('/')[-2]
+		id1 = id[:4]
+		id2 = id[4:]
+		id = id2 + id1
 		title = comic.text
-		#######################################################
 		comicURL = imgURL % id
-		dir.Append(Function(PhotoItem(getGoblins, title=title, thumb=Function(getGoblins, url=comicURL)), url=comicURL))
+		dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
 	return dir
-
-def getGoblins(url, sender=None):
-	img = HTTP.Request(url + 'a.jpg', cacheTime=CACHE_1YEAR)
-	if img != None:
-		return DataObject(img, mimetypes.guess_type(url))
-
-	img = HTTP.Request(url + '.jpg', cacheTime=CACHE_1YEAR)
-	if img != None:
-		return DataObject(img, mimetypes.guess_type(url))
-	else:
-		return Redirect(url + 'd.jpg', cacheTime=CACHE_1YEAR)
 
 ####################################################################################################
 
