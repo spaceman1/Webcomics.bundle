@@ -147,17 +147,19 @@ def BetweenFailures(sender):
 ####################################################################################################
 
 def Catena(sender):
-	archiveURL = 'http://catenamanor.com/?page_id=417'
-	archiveXPath = '//td[starts-with(@class, "comic-archive-item")]/a'
+	archiveURL = 'http://catenamanor.com/%i'
+	archiveXPath = '//img[@class="comicthumbnail"]'
 	
 	imgXPath = '//img[starts-with(@src, "http://catenamanor.com/comics/catena/")]'
-	hasOldestFirst = False
+	hasOldestFirst = True
 	
 	dir = MediaContainer(title1=sender.itemTitle)
-	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		title = img.xpath('./span')[0].text
-		comicURL =  img.get('href')
-		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
+	
+	for year in reversed(range(2003, datetime.datetime.now().year + 1)):
+		for img in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+			title = img.get('alt')
+			comicURL =  'http://catenamanor.com/comics/' + img.get('src').split('/')[-1]
+			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
 
