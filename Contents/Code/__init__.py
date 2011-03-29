@@ -35,6 +35,14 @@ def MainMenu():
 	for handler, title, thumb, art, subtitle, summary in getComicList():
 		dir.Append(Function(DirectoryItem(handler, title=title, thumb=R('icon-default.png'), art=R(art), summary=summary, subtitle=subtitle)))
 	dir.Append(PrefsItem(title='Preferences', thumb=R('icon-prefs.png')))
+	dir.Append(Function(DirectoryItem(AllMenu, title='All')))
+	return dir
+
+def AllMenu(sender):
+	dir = MediaContainer()
+	for handler, title, thumb, art, subtitle, summary in getComicList():
+		for item in handler(sender):
+			dir.Append(item)
 	return dir
 
 ####################################################################################################
@@ -776,7 +784,6 @@ def MegaTokyo(sender):
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
 	if not Prefs.Get('oldestFirst'):
 		dir.Reverse()
-	dir.Append(PrefsItem(title='Preferences', thumb=R('icon-prefs.png')))
 	return dir
 
 ####################################################################################################
