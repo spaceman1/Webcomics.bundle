@@ -44,11 +44,6 @@ def CreatePrefs():
 
 ####################################################################################################  
 
-def CreateDict():
-	Dict.Set('BetweenFailures.lastPage', 0)
-	Dict.Set('DrMcNinja.lastPage', 0)
-####################################################################################################  
-
 def getComic(url, sender=None):
 	urlEscaped = url.replace(' ', '%20')
 #	if HTTP.__cache.has_key(urlEscaped):
@@ -133,38 +128,19 @@ def AppleGeeksLite(sender):
 def BetweenFailures(sender):
 	# TODO: make progressive
 	dirTitle = 'Between Failures'
-	archiveURL = 'http://betweenfailures.com/category/comics/page/1/'
-	archiveXPath = '//div[@id="comicarchiveframe"]'
+	archiveURL = 'http://betweenfailures.com/archive-2/'
+	archiveXPath = '//tr[@class="webcomic-archive-items"]/td/a'
+	imgXPath = '//span[starts-with(@class, "webcomic-object")]/img'
 	hasOldestFirst = True
 
 	dir = MediaContainer(title1=dirTitle)
-	indexURL = archiveURL
-	hasMore = True
-	lastPage = Dict.Get('BetweenFailures.lastPage')
 	
-	while(hasMore):
-		if int(indexURL.split('/')[-2]) < lastPage:
-			cacheTime = 365 * CACHE_1DAY
-		else:
-			cacheTime = CACHE_1HOUR
-		#Log(cacheTime)
-		page = XML.ElementFromURL(indexURL, True, cacheTime=cacheTime)
-		
-		navLinks = page.xpath('//div[@class="navigation"]/a')
-		hasMore = False
-		for link in navLinks:
-			if link.text.startswith('Next'):
-				indexURL = link.get('href')
-				hasMore = True
-		
-		for comic in page.xpath(archiveXPath):
-			comicURL = comic.xpath('./a/img')[0].get('src').replace(' ', '%20')
-			title = comic.xpath('./h2/a')[0].text
-			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
+	for item in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+		title = item.text
+		itemURL = item.get('href')
+		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=itemURL, xpath=imgXPath)), url=itemURL, xpath=imgXPath))
 	if not Prefs.Get('oldestFirst'):
 		dir.Reverse()
-	
-	Dict.Set('BetweenFailures.lastPage', int(indexURL.split('/')[-2]))
 	
 	return dir
 		
