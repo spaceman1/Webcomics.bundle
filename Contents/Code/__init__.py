@@ -64,7 +64,7 @@ def getExtComic(url, sender=None):
 	for aURL in urls:
 		img = HTTP.Request(aURL, cacheTime=CACHE_1YEAR)
 		if img != None:
-			return DataObject(HTTP.Request(url, cacheTime=CACHE_1YEAR), mimetypes.guess_type(url))
+			return DataObject(HTTP.Request(aURL, cacheTime=CACHE_1YEAR), mimetypes.guess_type(url))
 
 	return None
 				
@@ -370,20 +370,14 @@ def ErrantStory(sender):
 	archiveURL = 'http://www.errantstory.com/category/comics/page/1'
 	archiveXPath = '//div[@class="comicarchiveframe"]/a'
 	hasOldestFirst = True
-	imgURL = 'http://www.errantstory.com/comics/%s.jpg'
+	imgURL = 'http://www.errantstory.com/comics/%s.gif'
 
 	dir = MediaContainer(title1=dirTitle)
 	indexURL = archiveURL
 	hasMore = True
-	lastPage = Dict.Get('lastPage')
 	
 	while(hasMore):
-		if int(indexURL.split('/')[-1]) < lastPage:
-			cacheTime = 365 * CACHE_1DAY
-		else:
-			cacheTime = CACHE_1HOUR
-		#Log(cacheTime)
-		page = XML.ElementFromURL(indexURL, True, cacheTime=cacheTime)
+		page = XML.ElementFromURL(indexURL, True)
 		
 		navLinks = page.xpath('//div[@class="pagenav-right"]/a')
 		if len(navLinks) != 0:
