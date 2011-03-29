@@ -963,22 +963,19 @@ def Sinfest(sender):
 
 def SlightlyDamned(sender):
 	dirTitle = 'Slightly Damned'
-	archiveURL = 'http://raizap.com/sdamned/archive.php'
-	archiveXPath = '//a[starts-with(@href, "http://raizap.com/sdamned/pages.php?comicID=")]'
-	imgURL = 'http://raizap.com/comikaze2/comics2/%s.%s'
-	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		#######################################################
-		id = comic.get('href').split('=')[-1].zfill(8)
-		title = comic.text
-		if id == '00000327':
-			comicURL = imgURL % (id, 'png')
-		else:
-			comicURL = imgURL % (id, 'jpg')
-		#######################################################
-		
-		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
+	archiveURL = 'http://www.sdamned.com/archives/'
+	imgURL = 'http://www.sdamned.com/comics/%s-%s-%s.jpg'
+	hasOldestFirst = False
+	months = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+	dir = MediaContainer(title2=dirTitle)
+	for yearItem in XML.ElementFromURL(archiveURL, True).xpath('//h3'):
+		year = yearItem.text
+		for item in yearItem.xpath('following-sibling::table/tr/td[@class="archive-date"]'):
+			month3Letter, day = item.text.split(' ')
+			month = str(months.index(month3Letter)).zfill(2)
+			comicURL = imgURL % (year, month, day.zfill(2))
+			title = item.xpath('./following-sibling::td[@class="archive-title"]/a')[0].text
+			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs.Get('oldestFirst') != hasOldestFirst:
 		dir.Reverse()
 	return dir
