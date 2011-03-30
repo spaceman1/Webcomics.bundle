@@ -61,8 +61,6 @@ def getExtComic(url, sender=None):
 			return Redirect(aURL)
 
 	return None
-				
-#def getComicMime(url, mime, sender=None):
 
 def getComicFromPage(url, xpath, sender=None):
 	img = urlparse.urljoin(url, HTML.ElementFromURL(url, cacheTime=CACHE_1YEAR).xpath(xpath)[0].get('src'))
@@ -811,7 +809,7 @@ def Misfile(sender):
 	archiveURL = 'http://www.misfile.com/index.php?menu=archives'
 	archiveXPath = '//a[@class="linkPage"]'
 	archive2XPath = '//a[@class="linkPage"]' 
-	imgURL = 'http://www.misfile.com/overlay.php?pageCalled=%s'
+	imgURL = 'http://www.misfile.com/overlay.php?pageCalled=%s#.png'
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 	dir = MediaContainer()
@@ -819,7 +817,8 @@ def Misfile(sender):
 		for img in HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href'))).xpath(archive2XPath):
 			title = img.text
 			comicURL = imgURL % img.get('href').split('=')[-1]
-			dir.Append(Function(PhotoItem(getComicMime, title=title, thumb=Function(getComicMime, url=comicURL, mime='image/png')), url=comicURL, mime='image/png'))
+			Log(comicURL)
+			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
