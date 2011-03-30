@@ -291,23 +291,20 @@ def DrMcNinja(sender):
 ####################################################################################################
 
 def DominicDeegan(sender):
-	holes = [1237, 1242, 1247, 1256, 1270, 1293, 1320, 1340, 1342, 1357, 1369, 1414, 1415, 1530, 1482, 1582, 1583, 1593, 1629, 1645, 1651, 1704, 1713, 1828, 1882, 2080, 2103, 2144, 2201, 2225, 2226, 2294, 2325, 2333, 2335, 2360, 2385]
 	dirTitle = 'Dominic Deegan'
 	archiveURL = 'http://www.dominic-deegan.com/archive.php?year=%i'
-	
 	archiveXPath = '//a[starts-with(@href, "view.php?")]'
-	imgURL = 'http://www.dominic-deegan.com/comics/%s%s%s.gif'
+	imgXPath = '//div[@class="comic"]/img'
 	
 	hasOldestFirst = True
 	
 	dir = MediaContainer(title1=dirTitle)
 	for year in range(2002, datetime.datetime.now().year + 1):
 		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
-			href = comic.get('href')
+			href = urlparse.urljoin(archiveURL, comic.get('href'))
 			year, month, day = re.search(r'(\d{4})-(\d\d)-(\d\d)', href).groups()
 			title = '%s-%s-%s' % (year, month, day)
-			comicURL = imgURL % (year, month, day)
-			dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
+			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=href, xpath=imgXPath)), url=href, xpath=imgXPath))
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
