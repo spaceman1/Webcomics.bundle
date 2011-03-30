@@ -220,7 +220,7 @@ def DanAndMab(sender):
 	archiveURL = 'http://www.missmab.com/arch.php'
 	archiveXPath = '//a[starts-with(text(), "Chapter")]'
 	archive2XPath = '//a[starts-with(@href, "Vol")]'
-	imgURL = 'http://www.missmab.com/Comics/Vol%s.jpg'
+	imgURL = 'http://www.missmab.com/Comics/Vol%s'
 	hasOldestFirst = True
 
 	dir = MediaContainer(title1=dirTitle)
@@ -230,10 +230,12 @@ def DanAndMab(sender):
 			title = img.text
 			if cIndex < 7:
 				comicURL = imgURL % str(cIndex).zfill(2)
-				cIndex += 1
 			else:
 				comicURL = imgURL % img.get('href').split('Vol_')[1].split('.')[0].lstrip('0').zfill(2)
-			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
+			if 76 < cIndex < 84: comicURL += '.gif'
+			else: comicURL += '.jpg'
+			cIndex += 1
+			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
