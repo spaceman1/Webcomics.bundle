@@ -1,7 +1,3 @@
-from PMS import *
-from PMS.Objects import *
-from PMS.Shortcuts import *
-
 import mimetypes
 import re
 import urlparse
@@ -23,7 +19,7 @@ def Start():
 	
 	Plugin.AddViewGroup('_List', viewMode='List', mediaType='items')
 	Plugin.AddViewGroup('_InfoList', viewMode='InfoList', mediaType='items')
-		
+	HTTP.cacheTime = CACHE_1DAY
 	MediaContainer.viewGroup = '_List'
 	MediaContainer.art = R('art-default.png')
 	MediaContainer.title1 = L('Webcomics')
@@ -35,7 +31,7 @@ def MainMenu():
 	for handler, title, thumb, art, subtitle, summary in getComicList():
 		dir.Append(Function(DirectoryItem(handler, title=title, thumb=R('icon-default.png'), art=R(art), summary=summary, subtitle=subtitle)))
 	dir.Append(PrefsItem(title='Preferences', thumb=R('icon-prefs.png')))
-	dir.Append(Function(DirectoryItem(AllMenu, title='All')))
+#	dir.Append(Function(DirectoryItem(AllMenu, title='All')))
 	return dir
 
 def AllMenu(sender):
@@ -44,11 +40,6 @@ def AllMenu(sender):
 		for item in handler(sender):
 			dir.Append(item)
 	return dir
-
-####################################################################################################
-
-def CreatePrefs():
-	Prefs.Add(id='oldestFirst', type='bool', default=True, label='Oldest comics first')
 
 ####################################################################################################  
 
@@ -80,15 +71,15 @@ def getComicMime(url, mime, sender=None):
 	return DataObject(HTTP.Request(url, cacheTime=CACHE_1YEAR), mime)
 
 def getComicFromPage(url, xpath, sender=None):
-	img = urlparse.urljoin(url, XML.ElementFromURL(url, True, cacheTime=CACHE_1YEAR).xpath(xpath)[0].get('src'))
+	img = urlparse.urljoin(url, HTML.ElementFromURL(url, cacheTime=CACHE_1YEAR).xpath(xpath)[0].get('src'))
 	return getComic(img)
 
 def getComicFromPageWithXPaths(url, xpaths, sender=None):
-	page = XML.ElementFromURL(url, True, cacheTime=CACHE_1YEAR)
+	page = HTML.ElementFromURL(url, cacheTime=CACHE_1YEAR)
 	for xpath in xpaths:
 		imgs = page.xpath(xpath)
 		if len(imgs) != 0:
-#	    imgs = XML.ElementFromURL(XML.ElementFromURL(url, True).xpath(xpaths[1])[0].get('href'), True).xpath(xpaths[1])
+#	    imgs = HTML.ElementFromURL(HTML.ElementFromURL(url).xpath(xpaths[1])[0].get('href')).xpath(xpaths[1])
 			img = imgs[0].get('src')
 			return getComic(img)
 
@@ -102,12 +93,12 @@ def AppleGeeks(sender):
 	hasOldestFirst = True
 
 	dir = MediaContainer(title1=dirTitle)
-	lastID = XML.ElementFromURL(archiveURL, True).xpath(archiveXPath)[0].get('src').split('issue')[1].split('.')[0]
+	lastID = HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[0].get('src').split('issue')[1].split('.')[0]
 	for id in range(1, int(lastID)):
 		title = str(id)
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -121,12 +112,12 @@ def AppleGeeksLite(sender):
 	hasOldestFirst = True
 
 	dir = MediaContainer(title1=dirTitle)
-	lastID = XML.ElementFromURL(archiveURL, True).xpath(archiveXPath)[0].get('src').split('aglite')[1].split('.')[0]
+	lastID = HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[0].get('src').split('aglite')[1].split('.')[0]
 	for id in range(1, int(lastID)):
 		title = str(id)
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -143,11 +134,11 @@ def BetweenFailures(sender):
 
 	dir = MediaContainer(title1=dirTitle)
 	
-	for item in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for item in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = item.text
 		itemURL = item.get('href')
 		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=itemURL, xpath=imgXPath)), url=itemURL, xpath=imgXPath))
-	if not Prefs.Get('oldestFirst'):
+	if not Prefs['oldestFirst']:
 		dir.Reverse()
 	
 	return dir
@@ -164,11 +155,11 @@ def Catena(sender):
 	dir = MediaContainer(title1=sender.itemTitle)
 	
 	for year in reversed(range(2003, datetime.datetime.now().year + 1)):
-		for img in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+		for img in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			title = img.get('alt')
 			comicURL =  'http://catenamanor.com/comics/' + img.get('src').split('/')[-1]
 			dir.Append(PhotoItem(comicURL, title=title))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 
 	return dir
@@ -187,11 +178,11 @@ def CtrlAltDel(sender):
 	dir = MediaContainer(title1=dirTitle)
 
 	for year in range(2002, datetime.datetime.now().year + 1):
-		for comic in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			title = comic.text
 			comicURL = urlparse.urljoin(base, comic.get('href'))
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=pageXPath)), url=comicURL, xpath=pageXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -207,18 +198,18 @@ def CyanideAndHappiness(sender):
 	
 	dir = MediaContainer(title1=dirTitle)
 	holes = list()
-	for movie in XML.ElementFromURL('http://www.explosm.net/movies/', True).xpath('//a[starts-with(@href, "/comics/")]'):
+	for movie in HTML.ElementFromURL('http://www.explosm.net/movies/').xpath('//a[starts-with(@href, "/comics/")]'):
 		holes.append(movie.get('href'))
 	
 	for year in range(2005, datetime.datetime.now().year + 1):
-		for comic in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			href = comic.get('href')
 			if href.startswith('/comics/archive'): continue
 			if href in holes: continue
 			comicURL = urlparse.urljoin(base, href)
 			title = comicURL.split('/')[-2]
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-		if Prefs.Get('oldestFirst') != hasOldestFirst:
+		if Prefs['oldestFirst'] != hasOldestFirst:
 			dir.Reverse()
 	return dir
 
@@ -234,8 +225,8 @@ def DanAndMab(sender):
 
 	dir = MediaContainer(title1=dirTitle)
 	cIndex = 1
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		for img in XML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')), True).xpath(archive2XPath):
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		for img in HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href'))).xpath(archive2XPath):
 			title = img.text
 			if cIndex < 7:
 				comicURL = imgURL % str(cIndex).zfill(2)
@@ -243,7 +234,7 @@ def DanAndMab(sender):
 			else:
 				comicURL = imgURL % img.get('href').split('Vol_')[1].split('.')[0].lstrip('0').zfill(2)
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -260,7 +251,7 @@ def DrMcNinja(sender):
 	lastPage = Dict.Get('DrMcNinja.lastPage')
 	cacheTime = CACHE_1YEAR
 	dir = MediaContainer(title1=sender.itemTitle)
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		storyTitle = archive.xpath('.//h2/a')[0].text
 		pageURL = archive.xpath('.//h2/a')[0].get('href')
 		archiveIndex = int(pageURL.split('/')[-1].split('p')[0])
@@ -273,7 +264,7 @@ def DrMcNinja(sender):
 		else:
 			if pageURL == lastPage:
 				cacheTime = 3600
-			page = XML.ElementFromURL(pageURL, True, cacheTime=cacheTime)
+			page = HTML.ElementFromURL(pageURL, cacheTime=cacheTime)
 			pageIndex = 1 
 			hasMore = True
 			while hasMore:
@@ -287,10 +278,10 @@ def DrMcNinja(sender):
 					pageURL = nextPage[0].get('href')
 					if pageURL == lastPage:
 						cacheTime = 3600
-					page = XML.ElementFromURL(pageURL, True, cacheTime=cacheTime)
+					page = HTML.ElementFromURL(pageURL, cacheTime=cacheTime)
 					pageIndex += 1
 	Dict.Set('DrMcNinja.lastPage', lastPage)
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -309,13 +300,13 @@ def DominicDeegan(sender):
 	
 	dir = MediaContainer(title1=dirTitle)
 	for year in range(2002, datetime.datetime.now().year + 1):
-		for comic in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			href = comic.get('href')
 			year, month, day = re.search(r'(\d{4})-(\d\d)-(\d\d)', href).groups()
 			title = '%s-%s-%s' % (year, month, day)
 			comicURL = imgURL % (year, month, day)
 			dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -331,12 +322,12 @@ def DuelingAnalogs(sender):
 	holes = set(['super-happy-new-year-world', 'scribblenots', 'the-kojima-code', 'istalkher', 'pong-solitaire', 'super-mario-bros-leftovers', 'dear-final-fantasy-xiii', 'mega-man-10-easy-peasy-lemon-squeezy'])
 	dir = MediaContainer(title1=dirTitle)
 	for year in range(2005, datetime.datetime.now().year + 1):
-		for img in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+		for img in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			title = img.text
 			comicURL = img.get('href')
 			if comicURL.split('/')[-2] in holes: continue
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -354,7 +345,7 @@ def EerieCuties(sender):
 	
 	dir = MediaContainer(title1=dirTitle)
 	imgs = list()
-	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		src = img.get('href')
 		if src not in imgs: imgs.append(src)
 	
@@ -367,7 +358,7 @@ def EerieCuties(sender):
 		if title == '20090610':
 			comicURL = comicURL[:-5] + '.jpg'
 		dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -385,7 +376,7 @@ def ErrantStory(sender):
 	hasMore = True
 	
 	while(hasMore):
-		page = XML.ElementFromURL(indexURL, True)
+		page = HTML.ElementFromURL(indexURL)
 		
 		navLinks = page.xpath('//div[@class="pagenav-right"]/a')
 		if len(navLinks) != 0:
@@ -401,7 +392,7 @@ def ErrantStory(sender):
 			title = comic.xpath('./small')[-1].text
 			
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
-	if not Prefs.Get('oldestFirst'):
+	if not Prefs['oldestFirst']:
 		dir.Reverse()
 	
 	Dict.Set('lastPage', int(indexURL.split('/')[-1]))
@@ -419,7 +410,7 @@ def ExterminatusNow(sender):
 
 	dir = MediaContainer(title1=sender.itemTitle)
 	
-	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = img.text
 		href = img.get('href')
 		if href == None: continue
@@ -427,7 +418,7 @@ def ExterminatusNow(sender):
 		Log(comicURL)
 		dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
 #		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=href, xpath=imgXPath)), url=href, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -442,14 +433,14 @@ def EV(sender):
 	hasOldestFirst = True
 
 	dir = MediaContainer(title1=dirTitle)
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath)[1:]:
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[1:]:
 		#######################################################
 		id = comic.get('value').split('/')[-1].split('.')[0]
 		title=comic.text
 		#######################################################
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -464,11 +455,11 @@ def FlakyPastry(sender):
 	hasOldestFirst = True
 	
 	dir = MediaContainer(title1=dirTitle)
-	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = img.text
 		comicURL = urlparse.urljoin(archiveURL, img.get('href'))
 		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 
 	return dir
@@ -484,7 +475,7 @@ def Flipside(sender):
 	
 	dir = MediaContainer(title1=sender.itemTitle)
 	
-	for chapter in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for chapter in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		chapterTitle = chapter.xpath('./td/div[1]/p[2]//b')
 		if len(chapterTitle) == 0:
 			chapterTitle = chapter.xpath('./td/p[1]/b/a')
@@ -496,7 +487,7 @@ def Flipside(sender):
 			title = '%s %s' % (chapterTitle[0].text, comic.text)
 			comicURL = urlparse.urljoin(archiveURL, comic.get('href'))
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -512,14 +503,14 @@ def GingersBread(sender):
 	hasOldestFirst = True
 	
 	dir = MediaContainer(title1=dirTitle)
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		imgs = XML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')), True).xpath(archive2XPath)
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		imgs = HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href'))).xpath(archive2XPath)
 		imgs.reverse()
 		for img in imgs:
 			title = '-'.join(img.get('href').split('/')[3:6])
 			comicURL = imgURL % (title, img.text.split(' ')[-1])
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -535,7 +526,7 @@ def GirlGenius(sender):
 
 	dir = MediaContainer(title1=dirTitle)
 
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		#######################################################
 		id = comic.get('value')
 		if id == '20090817':
@@ -548,7 +539,7 @@ def GirlGenius(sender):
 		#######################################################
 		
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
@@ -565,7 +556,7 @@ def GirlsWithSlingshots(sender):
 	
 	for year in range(2004, datetime.datetime.now().year + 1):
 		comics = list()
-		for comic in XML.ElementFromURL(archiveURL % year, True).xpath(archiveXPath):
+		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			date = comic.xpath('./td[@class="archive-date"]')[0].text
 			month = str(months.index(date.split(' ')[0])).zfill(2)
 			day = date.split(' ')[1].zfill(2)
@@ -574,7 +565,7 @@ def GirlsWithSlingshots(sender):
 			comics.append(PhotoItem(comicURL, title=title, thumb=comicURL))
 		comics.reverse()
 		for item in comics: dir.Append(item)
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -586,13 +577,13 @@ def Goats(sender):
 	
 	nowStr = '01.html'
 	dir = MediaContainer(title1=dirTitle)
-	for indexPage in XML.ElementFromURL('http://www.goats.com/', True).xpath('//select[@name="month"]/option'):
+	for indexPage in HTML.ElementFromURL('http://www.goats.com/').xpath('//select[@name="month"]/option'):
 		indexURL = 'http://www.goats.com' + indexPage.get('value')
 		if indexURL.endswith(nowStr):
 			cacheTime = CACHE_1HOUR
 		else:
 			cacheTime = CACHE_1DAY * 365
-		for comic in XML.ElementFromURL(indexURL, True, cacheTime=cacheTime).xpath('//table[@class="calendar"]//a'):
+		for comic in HTML.ElementFromURL(indexURL, cacheTime=cacheTime).xpath('//table[@class="calendar"]//a'):
 			id = comic.get('href').split('/')[-1].split('.')[0]
 			if id > '970400' or id < '031217':
 				ext = 'gif'
@@ -601,7 +592,7 @@ def Goats(sender):
 			title = comic.get('title')
 			comicURL = 'http://www.goats.com/comix/%s/goats%s.%s' % (id[:4], id, ext)
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
-		if not Prefs.Get('oldestFirst'):
+		if not Prefs['oldestFirst']:
 			dir.Reverse()
 	return dir
 
@@ -616,7 +607,7 @@ def Goblins(sender):
 	hasOldestFirst = True
 
 	dir = MediaContainer(title1=dirTitle)
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		id = comic.get('href').split('/')[-2]
 		id1 = id[:4]
 		id2 = id[4:]
@@ -624,7 +615,7 @@ def Goblins(sender):
 		title = comic.text
 		comicURL = imgURL % id
 		dir.Append(PhotoItem(comicURL, title=title))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -637,7 +628,7 @@ def GunnerkriggCourt(sender):
 	imgURL = 'http://www.gunnerkrigg.com//comics/%s'
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		id = comic.get('href').split('=')[-1]
 		if id == '297':
 			comicURL = imgURL % '00000297.gif'
@@ -646,7 +637,7 @@ def GunnerkriggCourt(sender):
 		title = id
 		
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
@@ -662,7 +653,7 @@ def LasLindas(sender):
 	hasOldestFirst = False
 	dir = MediaContainer(title1=dirTitle)
 
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		index, day, month, year = re.match(r'Comic (\d+) (\d+)/(\d+)/(\d+)', comic.text).groups()
 		title = comic.text
 		index = int(index)
@@ -673,7 +664,7 @@ def LasLindas(sender):
 		else:
 			comicURL = imgURL2 % (year, month, day)
 		dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
@@ -689,17 +680,17 @@ def LeastICouldDo(sender):
 	dir = MediaContainer(title1=dirTitle)
 	
 	archives = list()
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		archives.append(urlparse.urljoin(archiveURL, archive.get('href')))
 	archives.append(archiveURL)
 	
 	for archive in archives:
-		page = XML.ElementFromURL(archive, True)
+		page = HTML.ElementFromURL(archive)
 		for img in page.xpath(archive2XPath):
 			title = img.get('href').split('/')[-1]
 			comicURL = imgURL % title
 			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -714,11 +705,11 @@ def Level99(sender):
 	imgXPath2 = '//div[@class="comicarchiveframe"]/a'
 	hasOldestFirst = False
 	dir = MediaContainer(title1=dirTitle)
-	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = img.text
 		comicURL = img.get('href')
 		dir.Append(Function(PhotoItem(getComicFromPageWithXPaths, title=title, thumb=Function(getComicFromPageWithXPaths, url=comicURL, xpaths=[imgXPath, imgXPath2])), url=comicURL, xpaths=[imgXPath, imgXPath2]))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -734,13 +725,13 @@ def LookingForGroup(sender):
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		page = XML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')), True)
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		page = HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')))
 		for img in page.xpath(archive2XPath):
 			title = img.get('href').split('/')[-1]
 			comicURL = imgURL % img.xpath('./img')[0].get('src').split('/')[-1]
 			dir.Append(Function(PhotoItem(getComicMime, title=title, thumb=Function(getComicMime, url=comicURL, mime='image/gif')), url=comicURL, mime='image/gif'))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -754,12 +745,12 @@ def MAGISA(sender):
 	hasOldestFirst = False
 
 	dir = MediaContainer(title1=sender.itemTitle)
-	dropdown = XML.ElementFromURL(archiveURL, True).xpath('//select[@name="p"]')[0]
+	dropdown = HTML.ElementFromURL(archiveURL).xpath('//select[@name="p"]')[0]
 	for archive in dropdown.xpath('./option'):
 		comicURL = 'http://www.drunkduck.com/MAG_ISA/index.php?p=' + archive.get('value')
 		title = archive.text
 		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -776,13 +767,13 @@ def MegaTokyo(sender):
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 
-	archiveSections = XML.ElementFromURL(archiveURL, True).xpath('//div[@class="content"]')[1:]
+	archiveSections = HTML.ElementFromURL(archiveURL).xpath('//div[@class="content"]')[1:]
 	for archive in archiveSections:
 		for img in archive.xpath(archiveXPath):
 			title = img.text
 			comicURL = imgURL % img.get('href').split('/')[-1].zfill(4)
 			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
-	if not Prefs.Get('oldestFirst'):
+	if not Prefs['oldestFirst']:
 		dir.Reverse()
 	return dir
 
@@ -797,7 +788,7 @@ def MenageATrois(sender):
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 	processed = list()
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		#######################################################
 		if comic.get('href') == None: continue
 		id = comic.get('href').split('.')[0].split('/')[-1]
@@ -817,7 +808,7 @@ def MenageATrois(sender):
 		#######################################################
 		
 		
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
@@ -832,12 +823,12 @@ def Misfile(sender):
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 	dir = MediaContainer()
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		for img in XML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')), True).xpath(archive2XPath):
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		for img in HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href'))).xpath(archive2XPath):
 			title = img.text
 			comicURL = imgURL % img.get('href').split('=')[-1]
 			dir.Append(Function(PhotoItem(getComicMime, title=title, thumb=Function(getComicMime, url=comicURL, mime='image/png')), url=comicURL, mime='image/png'))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
@@ -852,12 +843,12 @@ def PeterAndCompany(sender):
 	hasOldestFirst = False
 	dir = MediaContainer(title1=dirTitle)
 
-	for img in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = img.text
 		href = img.get('href').split('/')
 		comicURL = imgURL %  '-'.join(href[3:6])
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -866,7 +857,7 @@ def PeterAndCompany(sender):
 
 def QuestionableContent(sender):
 	dir = MediaContainer(title1='Questionable Content')
-	for comic in XML.ElementFromURL('http://questionablecontent.net/archive.php', True).xpath('//div[@id="archive"]/a'):
+	for comic in HTML.ElementFromURL('http://questionablecontent.net/archive.php').xpath('//div[@id="archive"]/a'):
 		id = comic.get('href').split('=')[-1]
 		comicURL = 'http://questionablecontent.net/comics/%s.png' % id
 		title = comic.text
@@ -885,7 +876,7 @@ def SMBC(sender):
 
 	dirTitle = 'Saturday Morning Breakfast Cereal'
 	dir = MediaContainer(title1=dirTitle)
-	for link in XML.ElementFromURL(archiveURL, True).xpath('//a[starts-with(@href, "/index.php?db=comics&id=")]'):
+	for link in HTML.ElementFromURL(archiveURL).xpath('//a[starts-with(@href, "/index.php?db=comics&id=")]'):
 		title = link.text
 		comicURL = urlparse.urljoin(archiveURL, link.get('href'))
 		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
@@ -901,7 +892,7 @@ def SchoolBites(sender):
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		#######################################################
 		id = comic.get('href').split('/')[-1].split('.')[0]
 		title = '%s-%s-%s' % (id[0:4], id[4:6], id[6:8])
@@ -914,7 +905,7 @@ def SchoolBites(sender):
 		#######################################################
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
@@ -929,12 +920,12 @@ def SequentialArt(sender):
 	
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
-	lastID = XML.ElementFromURL(archiveURL, True).xpath(archiveXPath)[0].get('src').split('SA_')[1].split('_')[0]
+	lastID = HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[0].get('src').split('SA_')[1].split('_')[0]
 	for id in range(1, int(lastID)):
 		title = str(id)
 		comicURL = imgURL % str(id).zfill(4)
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -950,13 +941,13 @@ def Sinfest(sender):
 	hasOldestFirst = False
 	dir = MediaContainer(title1=dirTitle)
 	
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath)[1:]:
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[1:]:
 		#######################################################
 		id = comic.get('value')
 		#######################################################
 		comicURL = imgURL % id
 		dir.Append(Function(PhotoItem(getComicFromPage, title=comic.text, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -969,7 +960,7 @@ def SlightlyDamned(sender):
 	hasOldestFirst = False
 	months = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 	dir = MediaContainer(title2=dirTitle)
-	for yearItem in XML.ElementFromURL(archiveURL, True).xpath('//h3'):
+	for yearItem in HTML.ElementFromURL(archiveURL).xpath('//h3'):
 		year = yearItem.text
 		for item in yearItem.xpath('following-sibling::table/tr/td[@class="archive-date"]'):
 			month3Letter, day = item.text.split(' ')
@@ -977,7 +968,7 @@ def SlightlyDamned(sender):
 			comicURL = imgURL % (year, month, day.zfill(2))
 			title = item.xpath('./following-sibling::td[@class="archive-title"]/a')[0].text
 			dir.Append(PhotoItem(comicURL, title=title))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
@@ -994,12 +985,12 @@ def SomethingPositive(sender):
 	dir = MediaContainer(title1=dirTitle)
 
 	archives = list()
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		archives.append(urlparse.urljoin(archiveURL, archive.get('href')))
 	archives.append(archiveURL)
 	
 	for archive in archives:
-		page = XML.ElementFromURL(archive, True)
+		page = HTML.ElementFromURL(archive)
 		for img in page.xpath(archive2XPath):
 			title = XML.etree.tostring(img).split('>')[-1].split('\n')[0].strip()
 			date = img.text
@@ -1011,7 +1002,7 @@ def SomethingPositive(sender):
 			#	comicURL = imgURL % img.get('href').split('.')[0]
 			comicURL = urlparse.urljoin(archive, img.get('href'))
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()  
 	return dir
 	
@@ -1026,13 +1017,13 @@ def SomewhereDifferent(sender):
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 
-	for archive in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		page = XML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')), True)
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		page = HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')))
 		for img in page.xpath(archive2XPath):
 			title = img.text
 			comicURL = imgURL % img.get('href').split('.')[0]
 			dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
@@ -1045,14 +1036,14 @@ def TheSpaceBetween(sender):
 	imgURL = 'http://www.jellybeansniper.net/spacebetween/comics/%s.jpg'
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		#######################################################
 		id = comic.get('href').split('.')[0].split('comic')[-1]
 		#######################################################
 		comicURL = imgURL % id
 		title = comic.text
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -1069,13 +1060,13 @@ def ThreePanelSoul(sender):
 	hasOldestFirst = True
 	
 	dir = MediaContainer(title1=dirTitle)
-	for monthLink in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
-		for comic in XML.ElementFromURL(monthLink.get('href'), True).xpath(monthlyArchiveXPath):
+	for monthLink in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		for comic in HTML.ElementFromURL(monthLink.get('href')).xpath(monthlyArchiveXPath):
 			title = comic.xpath('./h3')[0].text
 			comicURL = comic.get('href')
 			thumbURL = comic.xpath('./img')[0].get('src')
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
 	return dir
@@ -1089,11 +1080,11 @@ def TwoKinds(sender):
 	hasOldestFirst = True
 	dir = MediaContainer(title1=sender.itemTitle)
 	
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = comic.text
 		comicURL = comic.get('href')
 		dir.Append(Function(PhotoItem(getComicFromPage, title=comic.text, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -1107,7 +1098,7 @@ def VGCats(sender):
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 	
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		comicURL = urlparse.urljoin(archiveURL, comic.get('href'))
 		try:
 			title = comic.xpath('./font')[0].text
@@ -1115,13 +1106,13 @@ def VGCats(sender):
 			title = comic.text
 		title = re.sub('[\r\n ]+', r' ', title)
 		dir.Append(Function(PhotoItem(getVGCats, title=title, thumb=Function(getVGCats, url=comicURL)), url=comicURL))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 	
 def getVGCats(url, sender=None):
 	imgSrc = None
-	for imgElem in XML.ElementFromURL(url, True).xpath('//img[contains(@src, "images/")]'):
+	for imgElem in HTML.ElementFromURL(url).xpath('//img[contains(@src, "images/")]'):
 		src = imgElem.get('src')
 		if re.match(r'images/\d+\..*', src):
 			return Redirect(urlparse.urljoin(url, src))
@@ -1137,14 +1128,14 @@ def XKCD(sender):
 	hasOldestFirst = False
 	dir = MediaContainer(title1=dirTitle)
 	
-	for comic in XML.ElementFromURL(archiveURL, True).xpath(archiveXPath):
+	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		comicURL = urlparse.urljoin(archiveURL, comic.get('href'))
 		try:
 			title = comic.xpath('./font')[0].text
 		except:
 			title = comic.text
 		dir.Append(Function(PhotoItem(getComicFromPageWithXPaths, title=title, thumb=Function(getComicFromPageWithXPaths, url=comicURL, xpaths=imgXPaths)), url=comicURL, xpaths=imgXPaths))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
@@ -1158,21 +1149,21 @@ def EightBitTheater(sender):
 	hasOldestFirst = True
 	
 	dir = MediaContainer(title1='8-bit Theater')
-	years = XML.ElementFromURL(index, True, errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[@class="archive-yearlist"]/a')
+	years = HTML.ElementFromURL(index, errors='ignore', cacheTime=CACHE_1DAY).xpath('//div[@class="archive-yearlist"]/a')
 	yearCount = len(years)
 	cacheTime = CACHE_1YEAR
 	for yearIndex in range(0, yearCount):
 		if yearIndex == yearCount - 1:
 			cacheTime = CACHE_1HOUR
 		link = urlparse.urljoin(index, years[yearIndex].get('href'))
-		pages = XML.ElementFromURL(link, True, errors='ignore', cacheTime=cacheTime).xpath('//div[@class="cpcal-day"]/a')
+		pages = HTML.ElementFromURL(link, errors='ignore', cacheTime=cacheTime).xpath('//div[@class="cpcal-day"]/a')
 		for page in pages:
 			#id = page.get('href').split('/')[3:6]
 			#comicURL = imgURL % (id[0][2:] + id[1] + id[2])
 			comicURL = page.get('href')
 			title = page.get('title')
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-	if Prefs.Get('oldestFirst') != hasOldestFirst:
+	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
 
