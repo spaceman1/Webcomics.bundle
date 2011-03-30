@@ -45,9 +45,7 @@ def AllMenu(sender):
 
 def getComic(url, sender=None):
 	urlEscaped = url.replace(' ', '%20')
-#	if HTTP.__cache.has_key(urlEscaped):
-#		return DataObject(HTTP.__cache[url]['Content'], mimetypes.guess_type(urlEscaped))
-	return DataObject(HTTP.Request(urlEscaped, cacheTime=CACHE_1YEAR), mimetypes.guess_type(urlEscaped))
+	return Redirect(urlEscaped)
 
 def getExtComic(url, sender=None):
 	baseURL = '.'.join(url.split('.')[:-1])
@@ -55,20 +53,16 @@ def getExtComic(url, sender=None):
 	urls = list()
 	for ext in ['png', 'gif', 'jpg', 'JPG']:
 		newURL = baseURL + '.' + ext
-#		if HTTP.__cache.has_key(newURL):
-#			return DataObject(HTTP.__cache[newURL]['Content'], mimetypes.guess_type(newURL))
 		urls.append(newURL)
 		
-	# here we have no cached copy
 	for aURL in urls:
 		img = HTTP.Request(aURL, cacheTime=CACHE_1YEAR)
 		if img != None:
-			return DataObject(HTTP.Request(aURL, cacheTime=CACHE_1YEAR), mimetypes.guess_type(url))
+			return Redirect(aURL)
 
 	return None
 				
-def getComicMime(url, mime, sender=None):
-	return DataObject(HTTP.Request(url, cacheTime=CACHE_1YEAR), mime)
+#def getComicMime(url, mime, sender=None):
 
 def getComicFromPage(url, xpath, sender=None):
 	img = urlparse.urljoin(url, HTML.ElementFromURL(url, cacheTime=CACHE_1YEAR).xpath(xpath)[0].get('src'))
@@ -79,7 +73,6 @@ def getComicFromPageWithXPaths(url, xpaths, sender=None):
 	for xpath in xpaths:
 		imgs = page.xpath(xpath)
 		if len(imgs) != 0:
-#	    imgs = HTML.ElementFromURL(HTML.ElementFromURL(url).xpath(xpaths[1])[0].get('href')).xpath(xpaths[1])
 			img = imgs[0].get('src')
 			return getComic(img)
 
@@ -717,10 +710,10 @@ def Level99(sender):
 
 def LookingForGroup(sender):
 	dirTitle = 'Looking for Group'
-	archiveURL = 'http://lfgcomic.com/issues.php'
-	archiveXPath = '//div[@id="spines"]//a'
+	archiveURL = 'http://lfgcomic.com/archive'
+	archiveXPath = '//div[@id="cover-archive"]/a'
 	archive2XPath = '//div[@id="page-thumb"]/a' 
-	imgURL = 'http://lfgcomic.com/comics/%s'
+	imgURL = 'http://newcdn.lfgcomic.com/uploads/comics/%s'
 	hasOldestFirst = True
 	dir = MediaContainer(title1=dirTitle)
 
@@ -729,7 +722,7 @@ def LookingForGroup(sender):
 		for img in page.xpath(archive2XPath):
 			title = img.get('href').split('/')[-1]
 			comicURL = imgURL % img.xpath('./img')[0].get('src').split('/')[-1]
-			dir.Append(Function(PhotoItem(getComicMime, title=title, thumb=Function(getComicMime, url=comicURL, mime='image/gif')), url=comicURL, mime='image/gif'))
+			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
