@@ -327,7 +327,15 @@ def EerieCuties(sender):
 			comicURL = imgURL % title
 		if title == '20090610':
 			comicURL = comicURL[:-5] + '.jpg'
-		dir.Append(PhotoItem(comicURL, title=title, thumb=comicURL))
+		if title == '20110125':
+			comicURL = comicURL[:-4] + '.jpg'
+		
+		if title == '20101103':
+			comicURL = comicURL[:-4]
+			dir.Append(PhotoItem(comicURL + 'a.png', title=title))
+			dir.Append(PhotoItem(comicURL + 'b.png', title=title))	
+		else:
+			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
