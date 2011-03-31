@@ -56,10 +56,10 @@ def getExtComic(url, sender=None):
 		urls.append(newURL)
 		
 	for aURL in urls:
-		img = HTTP.Request(aURL, cacheTime=CACHE_1YEAR)
-		if img != None:
-			return Redirect(aURL)
-
+		try:
+			img = HTTP.Request(aURL, cacheTime=CACHE_1YEAR).content
+			return DataObject(aURL)
+		except: pass
 	return None
 
 def getComicFromPage(url, xpath, sender=None):
@@ -385,8 +385,6 @@ def ErrantStory(sender):
 	if not Prefs['oldestFirst']:
 		dir.Reverse()
 	
-	Dict.Set('lastPage', int(indexURL.split('/')[-1]))
-	
 	return dir
 
 ####################################################################################################
@@ -485,21 +483,22 @@ def Flipside(sender):
 
 def GingersBread(sender):
 	dirTitle = "Ginger's Bread"
-	archiveURL = 'http://www.gingersbread.com/archive/'
-	archiveXPath = '//div[@class="archive-yearlist"]/a'
-	archive2XPath = '//td[@class="archive-title"]/a'
-	
-	imgURL = 'http://www.gingersbread.com/comics/%s-%s.png'
-	hasOldestFirst = True
+	archiveURL = 'http://www.gingersbread.com/archive/?archive_year=%i'
+	archiveXPath = '//td[@class="archive-title"]/parent::tr'
+
+	months = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']	
+	imgURL = 'http://www.gingersbread.com/comics/%s-%s-%s-%s.png'
+	hasOldestFirst = False
 	
 	dir = MediaContainer(title1=dirTitle)
-	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
-		imgs = HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href'))).xpath(archive2XPath)
-		imgs.reverse()
-		for img in imgs:
-			title = '-'.join(img.get('href').split('/')[3:6])
-			comicURL = imgURL % (title, img.text.split(' ')[-1])
-			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
+	for year in reversed(range(2008, datetime.datetime.now().year + 1)):
+		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
+			date = comic.xpath('./td[@class="archive-date"]')[0].text
+			month = str(months.index(date.split(' ')[0])).zfill(2)
+			day = date.split(' ')[1].zfill(2)
+			title = comic.xpath('./td[@class="archive-title"]/a')[0].text.split(' ')[-1]
+			comicURL = imgURL % (year, month, day, title)
+			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
