@@ -57,8 +57,8 @@ def getExtComic(url, sender=None):
 		
 	for aURL in urls:
 		try:
-			img = HTTP.Request(aURL, cacheTime=CACHE_1YEAR).content
-			return DataObject(aURL)
+			img = HTTP.Request(aURL, cacheTime=0).content
+			return Redirect(aURL)
 		except: pass
 	return None
 
