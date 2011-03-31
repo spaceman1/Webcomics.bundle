@@ -31,7 +31,7 @@ def MainMenu():
 	for handler, title, thumb, art, subtitle, summary in getComicList():
 		dir.Append(Function(DirectoryItem(handler, title=title, thumb=R('icon-default.png'), art=R(art), summary=summary, subtitle=subtitle)))
 	dir.Append(PrefsItem(title='Preferences', thumb=R('icon-prefs.png')))
-	dir.Append(Function(DirectoryItem(AllMenu, title='All')))
+	#dir.Append(Function(DirectoryItem(AllMenu, title='All')))
 	return dir
 
 def AllMenu(sender):
@@ -569,7 +569,7 @@ def Goats(sender):
 				ext = 'png'
 			title = comic.get('title')
 			comicURL = 'http://www.goats.com/comix/%s/goats%s.%s' % (id[:4], id, ext)
-			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
+			dir.Append(PhotoItem(comicURL, title=title))
 		if not Prefs['oldestFirst']:
 			dir.Reverse()
 	return dir
