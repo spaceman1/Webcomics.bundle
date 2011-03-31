@@ -403,7 +403,7 @@ def ExterminatusNow(sender):
 
 def EV(sender):
 	dirTitle = '+EV *'
-	archiveURL = 'http://plusev.keenspot.com/'
+	archiveURL = 'http://plusev.keenspot.com/archive.html'
 	archiveXPath = '//select[@name="menu"]/option'
 	imgURL = 'http://plusev.keenspot.com/comics/plusev%s.gif'
 	hasOldestFirst = True
