@@ -805,7 +805,6 @@ def Misfile(sender):
 		for img in HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href'))).xpath(archive2XPath):
 			title = img.text
 			comicURL = imgURL % img.get('href').split('=')[-1]
-			Log(comicURL)
 			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
