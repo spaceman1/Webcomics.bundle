@@ -31,7 +31,7 @@ def MainMenu():
 	for handler, title, thumb, art, subtitle, summary in getComicList():
 		dir.Append(Function(DirectoryItem(handler, title=title, thumb=R('icon-default.png'), art=R(art), summary=summary, subtitle=subtitle)))
 	dir.Append(PrefsItem(title='Preferences', thumb=R('icon-prefs.png')))
-#	dir.Append(Function(DirectoryItem(AllMenu, title='All')))
+	dir.Append(Function(DirectoryItem(AllMenu, title='All')))
 	return dir
 
 def AllMenu(sender):
@@ -841,7 +841,7 @@ def QuestionableContent(sender):
 		comicURL = 'http://questionablecontent.net/comics/%s.png' % id
 		title = comic.text
 		dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-	if Prefs.Get('Reverse'):
+	if Prefs['oldestFirst']:
 		dir.Reverse()
 	return dir
 
