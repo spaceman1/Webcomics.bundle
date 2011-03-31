@@ -1129,9 +1129,8 @@ def EightBitTheater(sender):
 		link = urlparse.urljoin(index, years[yearIndex].get('href'))
 		pages = HTML.ElementFromURL(link, errors='ignore', cacheTime=cacheTime).xpath('//div[@class="cpcal-day"]/a')
 		for page in pages:
-			#id = page.get('href').split('/')[3:6]
-			#comicURL = imgURL % (id[0][2:] + id[1] + id[2])
 			comicURL = page.get('href')
+			if comicURL == 'http://www.nuklearpower.com/2004/12/31/and-now-a-special-new-year-presentation/': continue
 			title = page.get('title')
 			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
 	if Prefs['oldestFirst'] != hasOldestFirst:
