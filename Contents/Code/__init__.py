@@ -498,6 +498,7 @@ def GingersBread(sender):
 			day = date.split(' ')[1].zfill(2)
 			title = comic.xpath('./td[@class="archive-title"]/a')[0].text.split(' ')[-1]
 			comicURL = imgURL % (year, month, day, title)
+			if 277 < int(title) < 281: comicURL = comicURL[:-4] + '.jpg'
 			dir.Append(PhotoItem(comicURL, title=title))
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
