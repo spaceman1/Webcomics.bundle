@@ -235,45 +235,25 @@ def DanAndMab(sender):
 ####################################################################################################
 
 def DrMcNinja(sender):
-	comicLengths = [14, 22, 45, 48, 42, 52, 0, 12, 49, 34, 56, 56, 5, 47, 72, 73, 5]
-	archiveURL = 'http://drmcninja.com/issues/'
-	archiveXPath = '//div[@class="serieslist-box"]'
-	archive2XPath = '//a[@class = "prepostnav-next"]'
+	dir = MediaContainer(title2=sender.itemTitle)
+	archiveURL = 'http://drmcninja.com'
 	imgXPath = '//div[@id="comic"]/img'
 	hasOldestFirst = True
-	lastPage = Dict.Get('DrMcNinja.lastPage')
-	cacheTime = CACHE_1YEAR
-	dir = MediaContainer(title1=sender.itemTitle)
-	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
-		storyTitle = archive.xpath('.//h2/a')[0].text
-		pageURL = archive.xpath('.//h2/a')[0].get('href')
-		archiveIndex = int(pageURL.split('/')[-1].split('p')[0])
-		archiveBase = 'p'.join(pageURL.split('p')[:-1]) + 'p'
-		if archiveIndex < len(comicLengths):
-			for pageIndex in range(1, comicLengths[archiveIndex] + 1):
-				title = '%s page %s' % (storyTitle, str(pageIndex).zfill(2))
-				comicURL = archiveBase+str(pageIndex)
-				dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
-		else:
-			if pageURL == lastPage:
-				cacheTime = 3600
-			page = HTML.ElementFromURL(pageURL, cacheTime=cacheTime)
-			pageIndex = 1 
-			hasMore = True
-			while hasMore:
-				title = '%s page %s' % (storyTitle, str(pageIndex).zfill(2))
-				comicURL = page.xpath(imgXPath)[0].get('src')
-				dir.Append(Function(PhotoItem(getComic, title=title, thumb=Function(getComic, url=comicURL)), url=comicURL))
-				nextPage = page.xpath(archive2XPath)
-				if len(nextPage) == 0:
-					hasMore = False
-				else:
-					pageURL = nextPage[0].get('href')
-					if pageURL == lastPage:
-						cacheTime = 3600
-					page = HTML.ElementFromURL(pageURL, cacheTime=cacheTime)
-					pageIndex += 1
-	Dict.Set('DrMcNinja.lastPage', lastPage)
+	
+	seriesArray = JSON.ObjectFromString(HTTP.Request('http://drmcninja.com/mcninja-js.php?ver=1.0').content.split('series_arr = ')[1].split(';\n')[0])
+	offset = 0
+	for item in HTML.ElementFromURL(archiveURL).xpath('//select[@name="series_select"]')[0].xpath('./option'):
+		pageIndex = 1
+		if offset == 18: # AxeCop Cross-over
+			for i in range(1, 5):
+				dir.Append(PhotoItem('http://axecop.com/images/uploads/axecopMC%i.png' % i, title='19p%i' % i))
+			pageIndex = 6
+		for item in seriesArray[offset]['posts']:
+			comicURL = 'http://drmcninja.com/archives/comic/' + item
+			title = '%ip%i' % (offset + 1, pageIndex)
+			pageIndex += 1
+			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
+		offset += 1
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	
