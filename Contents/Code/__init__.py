@@ -550,13 +550,16 @@ def GirlsWithSlingshots(sender):
 
 ####################################################################################################
 
-def Goats(sender):
+def Goats(sender, page=0):
 	dirTitle = 'Goats'
 	
 	nowStr = '01.html'
 	dir = MediaContainer(title1=dirTitle)
-	for indexPage in HTML.ElementFromURL('http://www.goats.com/').xpath('//select[@name="month"]/option'):
-		indexURL = 'http://www.goats.com' + indexPage.get('value')
+	indexURLs = ['http://www.goats.com' + indexPage.get('value') for indexPage in HTML.ElementFromURL('http://www.goats.com/').xpath('//select[@name="month"]/option')]
+	if not Prefs['oldestFirst']:
+		indexURLs.reverse()
+	
+	for indexURL in indexURLs[page:page + 13]:
 		if indexURL.endswith(nowStr):
 			cacheTime = CACHE_1HOUR
 		else:
@@ -570,8 +573,8 @@ def Goats(sender):
 			title = comic.get('title')
 			comicURL = 'http://www.goats.com/comix/%s/goats%s.%s' % (id[:4], id, ext)
 			dir.Append(PhotoItem(comicURL, title=title))
-		if not Prefs['oldestFirst']:
-			dir.Reverse()
+		
+		dir.Append(Function(DirectoryItem(Goats, title='More', thumb=R('icon-default.png')), page=page+13))
 	return dir
 
 ####################################################################################################
