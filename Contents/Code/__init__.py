@@ -342,9 +342,8 @@ def EerieCuties(sender):
 
 ####################################################################################################
 
-def ErrantStory(sender):
+def ErrantStory(sender, archiveURL='http://www.errantstory.com/category/comics/page/1'):
 	dirTitle = 'Errant Story'
-	archiveURL = 'http://www.errantstory.com/category/comics/page/1'
 	archiveXPath = '//div[@class="comicarchiveframe"]/a'
 	hasOldestFirst = True
 	imgURL = 'http://www.errantstory.com/comics/%s.gif'
@@ -353,26 +352,24 @@ def ErrantStory(sender):
 	indexURL = archiveURL
 	hasMore = True
 	
-	while(hasMore):
-		page = HTML.ElementFromURL(indexURL)
-		
-		navLinks = page.xpath('//div[@class="pagenav-right"]/a')
-		if len(navLinks) != 0:
-			indexURL = navLinks[0].get('href')
-		else:
-			hasMore = False
-			
-		for comic in page.xpath(archiveXPath):
-			id = comic.get('href').split('/')[-2]
-			if id == '2009-08-07' or id == '2009-06-12':
-				id = id + '-es' + id.replace('-', '')
-			comicURL = imgURL % id
-			title = comic.xpath('./small')[-1].text
-			
-			dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
-	if not Prefs['oldestFirst']:
-		dir.Reverse()
+	page = HTML.ElementFromURL(indexURL)
 	
+	navLinks = page.xpath('//div[@class="pagenav-right"]/a')
+	if len(navLinks) != 0:
+		indexURL = navLinks[0].get('href')
+	else:
+		hasMore = False
+		
+	for comic in page.xpath(archiveXPath):
+		id = comic.get('href').split('/')[-2]
+		if id == '2009-08-07' or id == '2009-06-12':
+			id = id + '-es' + id.replace('-', '')
+		comicURL = imgURL % id
+		title = comic.xpath('./small')[-1].text
+		
+		dir.Append(Function(PhotoItem(getExtComic, title=title, thumb=Function(getExtComic, url=comicURL)), url=comicURL))
+	if hasMore:
+		dir.Append(Function(DirectoryItem(ErrantStory, title='More', thumb=R('icon-default.png')), archiveURL=indexURL))
 	return dir
 
 ####################################################################################################
