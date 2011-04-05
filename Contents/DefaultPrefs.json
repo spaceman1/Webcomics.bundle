@@ -1,0 +1,9 @@
+[
+  {
+    "id":"oldestFirst",
+    "type":"bool",
+    "label":"Show oldest comics first",
+    "default":"true"
+  }
+
+]
