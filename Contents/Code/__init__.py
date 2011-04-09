@@ -868,6 +868,25 @@ def Misfile(sender):
 	
 ####################################################################################################
 
+def MysteryBabylon(sender):
+	archiveURL = 'http://www.kick-girl.com/?cat=3'
+	archiveXPath = '//div[@class="comicarchiveframe"]/a/img'
+	base = 'http://www.kick-girl.com/comics/'
+	hasOldestFirst = True
+	
+	dir = MediaContainer(title2=sender.itemTitle)
+	for item in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		title = item.get('alt')
+		thumb = item.get('src')
+		if title == 'Intro': comicURL = 'http://www.kick-girl.com/comics/2010-10-24-KG-000.jpg'
+		else: comicURL = base + thumb.split('/')[-1]
+		dir.Append(PhotoItem(comicURL, title=title, thumb=thumb))
+	if Prefs['oldestFirst'] != hasOldestFirst:
+		dir.Reverse()
+	return dir
+	
+####################################################################################################
+
 def PeterAndCompany(sender):
 	dirTitle = 'Peter and Company'
 	archiveURL = 'http://www.peterandcompany.com/archives/'
@@ -1258,6 +1277,7 @@ def getComicList():
 		[MegaTokyo, "MegaTokyo", "icon-MegaTokyo.png", "art-MegaTokyo.png", "Manga", "When two friends, Piro and Largo, get stuck in Japan, things can't seem to get much worse. Boy, were they wrong. Stranded with no money, Piro, the quiet artist with no self-confidence, who has the usual manga artist's weakness for girls in school uniforms, the only one who can speak Japanese, must find a job and look after Largo, the beer-guzzling, fantasy world L33t G4m3r. Together they meet up with old friends and enemies, make new ones, and deal with Dom's horrible stick-man fillers. A great comic drawn by a great artist."],
 		[MenageATrois, "Menage a Trois", "icon-MenageATrois.png", "art-MenageATrois.png", "Mature", "Set in Montreal, the finest bohemian city in North America, Menage a 3 follows the lives of comic book geek Gary and his way-sexier-than-he-is roomates in their Montreal tight-as-a-sandwhich apartment; where the walls are so thin there are virtually no barriers between their rooms."],
 		[Misfile, "Misfile", "icon-Misfile.png", "art-Misfile.png", "Manga", "A comedy about how a pothead angel messes up two distinctively different people's lives. A car-loving boy turned into a girl, and a girl who lost two years of her life. Now they must stick together to fix their problems"],
+		[MysteryBabylon, 'Mystery Babylon', None, None, 'Manga', 'Kick Girl, otherwise known as the villainous harlot "Mystery Babylon" from Revelations, seems intent on keeping the seal to the Pit closed. But can she really overcome the thousand year prophecy and keep Lucifer and his army of demons from breaking free?'],
 		[PeterAndCompany, "Peter and Company", "icon-PeterAndCompany.png", "art-PeterAndCompany.png", "Furry", "Peter, an adolescent cat, is having difficulty keeping friends when suddenly a new friend walks into his life in the form of Seth, a white-suited duck. Peter enjoys spending time with Seth, but soon realizes that he is the only one who can see him. Seth is known simply as a 'Guardian.' Other characters have Guardians as well, but the only people who can see them are the children who are already made aware of them."],
 		[QuestionableContent, "Questionable Content", "icon-QuestionableContent.png", "art-QuestionableContent.png", "Geeky", "The plot centers on Marten, who is your average frustrated 20-something music nerd, his anthropomorphic PC named Pintsize, and Faye, a somewhat mysterious girl who moved in with him after she accidentally burned her apartment building down while trying to make toast. Lately Marten's friend Steve and Faye's boss Dora have come into the story a little more frequently, ensuring that things will stay nice and complicated."],
 		[SMBC, "Saturday Morning Breakfast Cereal", "icon-SMBC.png", "art-SMBC.png", "Weird", "A single panel strip in the vein of the Far Side, if Gary Larson had been allowed to just write whatever he wanted and not had to worry about pleasing an editor"],
