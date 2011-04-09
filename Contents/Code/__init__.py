@@ -900,6 +900,26 @@ def PeterAndCompany(sender):
 
 ####################################################################################################
 
+def PVPOnline(sender):
+	archiveURL= 'http://www.pvponline.com/%i/%s/'
+	archiveXPath = '//div[@class="comicarchiveframe"]/a/img'
+	now = datetime.datetime.now()
+	hasOldestFirst = True
+	dir = MediaContainer(title2=sender.itemTitle)
+	for year in range(1998, now.year + 1):
+		monthRange = range(5, 13) if (year == 1998) else range(1, now.month + 1) if (year == now.year) else range(1, 13)
+		for month in monthRange:
+			for item in HTML.ElementFromURL(archiveURL % (year, str(month).zfill(2))).xpath(archiveXPath):
+				title = item.get('alt')
+				comicURL = item.get('src')
+				dir.Append(PhotoItem(comicURL, title=title))
+	if Prefs['oldestFirst'] != hasOldestFirst:
+		dir.Reverse()
+	
+	return dir
+	
+####################################################################################################
+
 def QuestionableContent(sender):
 	dir = MediaContainer(title1='Questionable Content')
 	for comic in HTML.ElementFromURL('http://questionablecontent.net/archive.php').xpath('//div[@id="archive"]/a'):
@@ -1261,6 +1281,7 @@ def getComicList():
 		[Misfile, "Misfile", "Manga", "A comedy about how a pothead angel messes up two distinctively different people's lives. A car-loving boy turned into a girl, and a girl who lost two years of her life. Now they must stick together to fix their problems"],
 		[MysteryBabylon, 'Mystery Babylon', 'Manga', 'Kick Girl, otherwise known as the villainous harlot "Mystery Babylon" from Revelations, seems intent on keeping the seal to the Pit closed. But can she really overcome the thousand year prophecy and keep Lucifer and his army of demons from breaking free?'],
 		[PeterAndCompany, "Peter and Company", "Furry", "Peter, an adolescent cat, is having difficulty keeping friends when suddenly a new friend walks into his life in the form of Seth, a white-suited duck. Peter enjoys spending time with Seth, but soon realizes that he is the only one who can see him. Seth is known simply as a 'Guardian.' Other characters have Guardians as well, but the only people who can see them are the children who are already made aware of them."],
+		[PVPOnline, 'PVP Online', 'Workplace', "PvP Online is a comic about the everyday going-on's at the headquarters of a video game magazine. It has lots of humorous references to recent games, movies, and other electronic entertainment. The dialogue is witty and the characters are intriguing and hilarious."],
 		[QuestionableContent, "Questionable Content", "Geeky", "The plot centers on Marten, who is your average frustrated 20-something music nerd, his anthropomorphic PC named Pintsize, and Faye, a somewhat mysterious girl who moved in with him after she accidentally burned her apartment building down while trying to make toast. Lately Marten's friend Steve and Faye's boss Dora have come into the story a little more frequently, ensuring that things will stay nice and complicated."],
 		[SMBC, "Saturday Morning Breakfast Cereal", "Weird", "A single panel strip in the vein of the Far Side, if Gary Larson had been allowed to just write whatever he wanted and not had to worry about pleasing an editor"],
 		[SchoolBites, "School Bites", "Mature", "How does a sweet girl learn to become a groovy vampire?!\nWhat all good ghouls do...go to Vampire School!\nJoin Cherri Creeper and her friends in their first adventure at the Shadow Academy.\nJust think of Degrassi High with Fangs or Harry Potter meets Anne Rice.\nLovers of Lolita Goth, Manga & all things cute will dig School Bites!"],
