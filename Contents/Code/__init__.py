@@ -77,13 +77,12 @@ def getComicFromPageWithXPaths(url, xpaths, sender=None):
 ####################################################################################################
 
 def AppleGeeks(sender):
-	dirTitle = 'AppleGeeks 3.0'
 	archiveURL = 'http://www.applegeeks.com/'
 	archiveXPath = '//div[@id="comic"]/img'
 	imgURL = 'http://www.applegeeks.com/comics/issue%i.jpg'
 	hasOldestFirst = True
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	lastID = HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[0].get('src').split('issue')[1].split('.')[0]
 	for id in range(1, int(lastID)):
 		title = str(id)
@@ -96,13 +95,12 @@ def AppleGeeks(sender):
 ####################################################################################################  
 
 def AppleGeeksLite(sender):
-	dirTitle = 'AppleGeeks Lite'
 	archiveURL = 'http://www.applegeeks.com/'
 	archiveXPath = '//div[@id="comiclite"]/a/img'
 	imgURL = 'http://www.applegeeks.com/lite/strips/aglite%i.jpg'
 	hasOldestFirst = True
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	lastID = HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[0].get('src').split('aglite')[1].split('.')[0]
 	for id in range(1, int(lastID)):
 		title = str(id)
@@ -135,13 +133,12 @@ def AwkwardZombie(sender):
 	
 def BetweenFailures(sender):
 	# TODO: make progressive
-	dirTitle = 'Between Failures'
 	archiveURL = 'http://betweenfailures.com/archive-2/'
 	archiveXPath = '//tr[@class="webcomic-archive-items"]/td/a'
 	imgXPath = '//span[starts-with(@class, "webcomic-object")]/img'
 	hasOldestFirst = True
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	
 	for item in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = item.text
@@ -176,7 +173,6 @@ def Catena(sender):
 ####################################################################################################
 
 def CtrlAltDel(sender):
-	dirTitle = 'Ctrl+Alt+Del'
 	archiveURL = 'http://www.cad-comic.com/cad/archive/%i'
 	archiveXPath = '//div[@class = "post"]/a'
 	pageXPath = '//img[contains(@src, "/comics/")]'
@@ -184,7 +180,7 @@ def CtrlAltDel(sender):
 	imgURL = 'http://www.cad-comic.com/comics/cad/%s.jpg'
 	hasOldestFirst = False
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	for year in range(2002, datetime.datetime.now().year + 1):
 		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
@@ -198,14 +194,13 @@ def CtrlAltDel(sender):
 ####################################################################################################
 
 def CyanideAndHappiness(sender):
-	dirTitle = 'Cyanide and Happiness'
 	archiveURL = 'http://www.explosm.net/comics/archive/%i/'
 	base = 'http://www.explosm.net/'
 	archiveXPath = '//a[starts-with(@href, "/comics/")]'
 	imgXPath = '//img[@alt="Cyanide and Happiness, a daily webcomic"]'
 	hasOldestFirst = True
 	
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	holes = list()
 	for movie in HTML.ElementFromURL('http://www.explosm.net/movies/').xpath('//a[starts-with(@href, "/comics/")]'):
 		holes.append(movie.get('href'))
@@ -225,14 +220,13 @@ def CyanideAndHappiness(sender):
 ####################################################################################################
 
 def DanAndMab(sender):
-	dirTitle = "Dan and Mab's Furry Adventures"
 	archiveURL = 'http://www.missmab.com/arch.php'
 	archiveXPath = '//a[starts-with(text(), "Chapter")]'
 	archive2XPath = '//a[starts-with(@href, "Vol")]'
 	imgURL = 'http://www.missmab.com/Comics/Vol%s'
 	hasOldestFirst = True
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	cIndex = 1
 	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		for img in HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href'))).xpath(archive2XPath):
@@ -280,14 +274,13 @@ def DrMcNinja(sender):
 ####################################################################################################
 
 def DominicDeegan(sender):
-	dirTitle = 'Dominic Deegan'
 	archiveURL = 'http://www.dominic-deegan.com/archive.php?year=%i'
 	archiveXPath = '//a[starts-with(@href, "view.php?")]'
 	imgXPath = '//div[@class="comic"]/img'
 	
 	hasOldestFirst = True
 	
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for year in range(2002, datetime.datetime.now().year + 1):
 		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			href = urlparse.urljoin(archiveURL, comic.get('href'))
@@ -302,13 +295,12 @@ def DominicDeegan(sender):
 ####################################################################################################
 
 def DuelingAnalogs(sender):
-	dirTitle = 'Dueling Analogs'
 	archiveURL = 'http://www.duelinganalogs.com/archive/?archive_year=%i'
 	archiveXPath = '//ul[@class="monthly"]/li/a'
 	imgXPath = '//div[@id="comic"]/img'
 	hasOldestFirst = True
 	holes = set(['super-happy-new-year-world', 'scribblenots', 'the-kojima-code', 'istalkher', 'pong-solitaire', 'super-mario-bros-leftovers', 'dear-final-fantasy-xiii', 'mega-man-10-easy-peasy-lemon-squeezy'])
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for year in range(2005, datetime.datetime.now().year + 1):
 		for img in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			title = img.text
@@ -323,7 +315,6 @@ def DuelingAnalogs(sender):
 ####################################################################################################
 
 def EerieCuties(sender):
-	dirTitle = 'Eerie Cuties'
 	archiveURL = 'http://www.eeriecuties.com/archive.html'
 	archiveXPath = '//a[starts-with(@href, "/d/")]'
 	
@@ -331,7 +322,7 @@ def EerieCuties(sender):
 	imgURL2 = 'http://www.eeriecuties.com/comics/ec%s.png'
 	hasOldestFirst = True
 	
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	imgs = list()
 	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		src = img.get('href')
@@ -361,12 +352,11 @@ def EerieCuties(sender):
 ####################################################################################################
 
 def ErrantStory(sender, archiveURL='http://www.errantstory.com/category/comics/page/1'):
-	dirTitle = 'Errant Story'
 	archiveXPath = '//div[@class="comicarchiveframe"]/a'
 	hasOldestFirst = True
 	imgURL = 'http://www.errantstory.com/comics/%s.gif'
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	indexURL = archiveURL
 	hasMore = True
 	
@@ -417,13 +407,12 @@ def ExterminatusNow(sender):
 ####################################################################################################
 
 def EV(sender):
-	dirTitle = '+EV *'
 	archiveURL = 'http://plusev.keenspot.com/archive.html'
 	archiveXPath = '//select[@name="menu"]/option'
 	imgURL = 'http://plusev.keenspot.com/comics/plusev%s.gif'
 	hasOldestFirst = True
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[1:]:
 		#######################################################
 		id = comic.get('value').split('/')[-1].split('.')[0]
@@ -458,14 +447,13 @@ def ElGoonishShive(sender):
 ####################################################################################################
 
 def FlakyPastry(sender):
-	dirTitle = 'Flaky Pastry'
 	archiveURL = 'http://flakypastry.runningwithpencils.com/archive.php'
 	archiveXPath = '//a[starts-with(@href, "comic.php?strip_id=")]'
 	
 	imgXPath = '//img[starts-with(@src, "comics/")]'
 	hasOldestFirst = True
 	
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = img.text
 		comicURL = urlparse.urljoin(archiveURL, img.get('href'))
@@ -523,7 +511,6 @@ def Friday4Koma(sender):
 ####################################################################################################
 
 def GingersBread(sender):
-	dirTitle = "Ginger's Bread"
 	archiveURL = 'http://www.gingersbread.com/archive/?archive_year=%i'
 	archiveXPath = '//td[@class="archive-title"]/parent::tr'
 
@@ -531,7 +518,7 @@ def GingersBread(sender):
 	imgURL = 'http://www.gingersbread.com/comics/%s-%s-%s-%s.png'
 	hasOldestFirst = False
 	
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for year in reversed(range(2008, datetime.datetime.now().year + 1)):
 		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
 			date = comic.xpath('./td[@class="archive-date"]')[0].text
@@ -549,13 +536,12 @@ def GingersBread(sender):
 ####################################################################################################
 
 def GirlGenius(sender):
-	dirTitle = 'Girl Genius'
 	archiveURL = 'http://www.girlgeniusonline.com/comic.php'
 	archiveXPath = '//select[@name="date"]/option'
 	imgURL = 'http://www.girlgeniusonline.com/ggmain/strips/ggmain%sb.jpg'
 	hasOldestFirst = True
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		#######################################################
@@ -577,13 +563,12 @@ def GirlGenius(sender):
 ####################################################################################################
 
 def GirlsWithSlingshots(sender):
-	dirTitle = 'Girls with Slingshots'
 	archiveURL = 'http://www.girlswithslingshots.com/archive/?archive_year=%i'
 	archiveXPath = '//td[@class="archive-title"]/parent::tr'
 	imgURL = 'http://www.girlswithslingshots.com/comics/%s-%s-%s-%s.jpg'
 	hasOldestFirst = True
 	months = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	
 	for year in range(2004, datetime.datetime.now().year + 1):
 		comics = list()
@@ -604,10 +589,9 @@ def GirlsWithSlingshots(sender):
 ####################################################################################################
 
 def Goats(sender, page=0):
-	dirTitle = 'Goats'
 	
 	nowStr = '01.html'
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	indexURLs = ['http://www.goats.com' + indexPage.get('value') for indexPage in HTML.ElementFromURL('http://www.goats.com/').xpath('//select[@name="month"]/option')]
 	if not Prefs['oldestFirst']:
 		indexURLs.reverse()
@@ -633,14 +617,13 @@ def Goats(sender, page=0):
 ####################################################################################################
 
 def Goblins(sender):
-	dirTitle = 'Goblins'
 	archiveURL = 'http://www.goblinscomic.com/archive/'
 	archiveXPath = '//div[@class="post-page"]//a'
 	imgURL = 'http://www.goblinscomic.com/comics/%s.jpg'
 	
 	hasOldestFirst = True
 
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		id = comic.get('href').split('/')[-2]
 		id1 = id[:4]
@@ -656,12 +639,11 @@ def Goblins(sender):
 ####################################################################################################
 
 def GunnerkriggCourt(sender):
-	dirTitle = 'Gunnerkrigg Court'
 	archiveURL = 'http://www.gunnerkrigg.com/archive.php'
 	archiveXPath = '//a[@class="calendarlink"]'
 	imgURL = 'http://www.gunnerkrigg.com//comics/%s'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		id = comic.get('href').split('=')[-1]
 		if id == '297':
@@ -695,14 +677,13 @@ def HotMess(sender):
 ####################################################################################################
 
 def LasLindas(sender):
-	dirTitle = 'Las Lindas'
 	archiveURL = 'http://laslindas.katbox.net/?page_id=2&cat=5'
 	archiveXPath = '//section[starts-with(@id, "archive_")]//a'
 	imgURL1 = 'http://laslindas.katbox.net/wp-content/uploads/2011/01/%s%s%s.jpg'
 	imgURL2 = 'http://laslindas.katbox.net/wp-content/uploads/2011/01/%s%s%s.JPG'
 	imgURL3 = 'http://laslindas.katbox.net/wp-content/uploads/%s/%s/las_lindas%i.jpg'
 	hasOldestFirst = False
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		index, day, month, year = re.match(r'Comic (\d+) (\d+)/(\d+)/(\d+)', comic.text).groups()
@@ -722,13 +703,12 @@ def LasLindas(sender):
 ####################################################################################################
 
 def LeastICouldDo(sender):
-	dirTitle = 'Least I Could Do'
 	archiveURL = 'http://www.leasticoulddo.com/archive/calendar'
 	archiveXPath = '//div[@id="page-content"]/p/a'
 	archive2XPath = '//div[starts-with(@id,"calendar-")]//a' 
 	imgURL = 'http://cdn.leasticoulddo.com/comics/%s.gif'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	
 	archives = list()
 	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
@@ -749,13 +729,12 @@ def LeastICouldDo(sender):
 ####################################################################################################
 
 def Level99(sender):
-	dirTitle = 'Level 99'
 	archiveURL = 'http://level99comic.com/comics-archive/'
 	archiveXPath = '//td[@class="archive-title"]/a'
 	imgXPath = '//div[@id="comic"]/img'
 	imgXPath2 = '//div[@class="comicarchiveframe"]/a'
 	hasOldestFirst = False
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = img.text
 		comicURL = img.get('href')
@@ -768,13 +747,12 @@ def Level99(sender):
 ####################################################################################################
 
 def LookingForGroup(sender):
-	dirTitle = 'Looking for Group'
 	archiveURL = 'http://lfgcomic.com/archive'
 	archiveXPath = '//div[@id="cover-archive"]/a'
 	archive2XPath = '//div[@id="page-thumb"]/a' 
 	imgURL = 'http://newcdn.lfgcomic.com/uploads/comics/%s'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		page = HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')))
@@ -809,14 +787,13 @@ def MAGISA(sender):
 ####################################################################################################
 
 def MegaTokyo(sender):
-	dirTitle = 'MegaTokyo'
 	archiveURL = 'http://megatokyo.com/archive.php'
 	
 	archiveXPath = './div/ol/li/a'
 	imgURL = 'http://megatokyo.com/strips/%s.gif'
 	
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	archiveSections = HTML.ElementFromURL(archiveURL).xpath('//div[@class="content"]')[1:]
 	for archive in archiveSections:
@@ -831,13 +808,12 @@ def MegaTokyo(sender):
 ####################################################################################################
 	
 def MenageATrois(sender):
-	dirTitle = 'Menage a Trois'
 	archiveURL = 'http://www.menagea3.net/archive.html'
 	archiveXPath = '//span[@class="trebuchetbody12pix"]/following-sibling::table//a'
 	imgURL = 'http://www.menagea3.net/comics/mat%s.png'
 	imgXPath = '//img[starts-with(@src, "/comics/")]'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	processed = list()
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		#######################################################
@@ -866,13 +842,12 @@ def MenageATrois(sender):
 ####################################################################################################
 
 def Misfile(sender):
-	dirTitle = 'Misfile'
 	archiveURL = 'http://www.misfile.com/index.php?menu=archives'
 	archiveXPath = '//a[@class="linkPage"]'
 	archive2XPath = '//a[@class="linkPage"]' 
 	imgURL = 'http://www.misfile.com/overlay.php?pageCalled=%s#.png'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	dir = MediaContainer()
 	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		for img in HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href'))).xpath(archive2XPath):
@@ -905,13 +880,12 @@ def MysteryBabylon(sender):
 ####################################################################################################
 
 def PeterAndCompany(sender):
-	dirTitle = 'Peter and Company'
 	archiveURL = 'http://www.peterandcompany.com/archives/'
 	archiveXPath = '//ul[@class="lcp_catlist"]/li/a'
 	
 	imgURL = 'http://www.peterandcompany.com/strips/%s.jpg'
 	hasOldestFirst = False
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	for img in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		title = img.text
@@ -944,8 +918,7 @@ def SMBC(sender):
 	imgXPath = '//td[@class="comicboxleft"]/following-sibling::td[1]/table/tr/td/center/img[2]'
 	months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
-	dirTitle = 'Saturday Morning Breakfast Cereal'
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for link in HTML.ElementFromURL(archiveURL).xpath('//a[starts-with(@href, "/index.php?db=comics&id=")]'):
 		title = link.text
 		comicURL = urlparse.urljoin(archiveURL, link.get('href'))
@@ -955,12 +928,11 @@ def SMBC(sender):
 ####################################################################################################
 
 def SchoolBites(sender):
-	dirTitle = 'School Bites'
 	archiveURL = 'http://www.schoolbites.net/archive.html'
 	archiveXPath = '//a[starts-with(@href, "/d/")]'
 	imgURL = 'http://www.schoolbites.net/comics/sb%s'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		#######################################################
@@ -982,14 +954,13 @@ def SchoolBites(sender):
 ####################################################################################################
 
 def SequentialArt(sender):
-	dirTitle = 'Sequential Art'
 	archiveURL = 'http://www.collectedcurios.com/sequentialart.php'
 	
 	archiveXPath = '//img[@id="strip"]'
 	imgURL = 'http://www.collectedcurios.com/SA_%s_small.jpg'
 	
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	lastID = HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[0].get('src').split('SA_')[1].split('_')[0]
 	for id in range(1, int(lastID)):
 		title = str(id)
@@ -1003,13 +974,12 @@ def SequentialArt(sender):
 ####################################################################################################
 
 def Sinfest(sender):
-	dirTitle = 'Sinfest'
 	archiveURL = 'http://www.sinfest.net/archive.php'
 	archiveXPath = '//select[@name="comicID"]/option'
 	imgURL = "http://www.sinfest.net/archive_page.php?comicID=%s"
 	imgXPath = '//img[starts-with(@src, "http://sinfest.net/comikaze/comics/")]'
 	hasOldestFirst = False
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[1:]:
 		#######################################################
@@ -1024,12 +994,11 @@ def Sinfest(sender):
 ####################################################################################################
 
 def SlightlyDamned(sender):
-	dirTitle = 'Slightly Damned'
 	archiveURL = 'http://www.sdamned.com/archives/'
 	imgURL = 'http://www.sdamned.com/comics/%s-%s-%s.jpg'
 	hasOldestFirst = False
 	months = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-	dir = MediaContainer(title2=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for yearItem in HTML.ElementFromURL(archiveURL).xpath('//h3'):
 		year = yearItem.text
 		for item in yearItem.xpath('following-sibling::table/tr/td[@class="archive-date"]'):
@@ -1045,14 +1014,13 @@ def SlightlyDamned(sender):
 ####################################################################################################
 
 def SomethingPositive(sender):
-	dirTitle = 'Something Positive'
 	archiveURL = 'http://www.somethingpositive.net/archive.shtml'
 	archiveXPath = '//b/a'
 	archive2XPath = '//pre//a' 
 	imgURL = 'http://www.somethingpositive.net/%s.gif'
 	imgXPath = '/html/body/table/tr/td/table/tr/td/table/tr/td/table/tr/td/img[2]'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	archives = list()
 	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
@@ -1079,13 +1047,12 @@ def SomethingPositive(sender):
 ####################################################################################################
 
 def SomewhereDifferent(sender):
-	dirTitle = 'Somewhere Different'
 	archiveURL = 'http://somewheredifferent.webs.com/archives.html'
 	archiveXPath = '//div[@class="content"]//a'
 	archive2XPath = '//div[@class="event"]/a' 
 	imgURL = 'http://i944.photobucket.com/albums/ad281/somewheredifferent/%s.png'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 
 	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		page = HTML.ElementFromURL(urlparse.urljoin(archiveURL, archive.get('href')))
@@ -1100,12 +1067,11 @@ def SomewhereDifferent(sender):
 ####################################################################################################
 
 def TheSpaceBetween(sender):
-	dirTitle = 'The Space Between'
 	archiveURL = 'http://www.jellybeansniper.net/spacebetween/archives.html'
 	archiveXPath = '//table[@class="archives"]//a'
 	imgURL = 'http://www.jellybeansniper.net/spacebetween/comics/%s.jpg'
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		#######################################################
 		id = comic.get('href').split('.')[0].split('comic')[-1]
@@ -1120,7 +1086,6 @@ def TheSpaceBetween(sender):
 ####################################################################################################
 
 def ThreePanelSoul(sender):
-	dirTitle = 'Three Panel Soul'
 	archiveURL = 'http://threepanelsoul.com/'
 	archiveXPath = '//h2[text()="Monthly Archives"]/following-sibling::ul/li/a'
 	monthlyArchiveXPath = '//div[@class="comicarchiveframe"]/a'
@@ -1129,7 +1094,7 @@ def ThreePanelSoul(sender):
 	
 	hasOldestFirst = True
 	
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	for monthLink in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		for comic in HTML.ElementFromURL(monthLink.get('href')).xpath(monthlyArchiveXPath):
 			title = comic.xpath('./h3')[0].text
@@ -1161,12 +1126,11 @@ def TwoKinds(sender):
 ####################################################################################################
 
 def VGCats(sender):
-	dirTitle = 'VG Cats'
 	archiveURL = 'http://www.vgcats.com/archive/'
 	archiveXPath = '//a[contains(@href, "../comics/?strip_id=")]'
 	
 	hasOldestFirst = True
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		comicURL = urlparse.urljoin(archiveURL, comic.get('href'))
@@ -1210,13 +1174,12 @@ def WhatsShakin(sender):
 ####################################################################################################
 
 def XKCD(sender):
-	dirTitle = 'XKCD'
 	archiveURL = 'http://xkcd.com/archive/'
 	archiveXPath = '//div[@class="s"]/h1/following-sibling::a'
 	
 	imgXPaths = ['//div[@class="s"]/img', '//div[@class="s"]/a/img']
 	hasOldestFirst = False
-	dir = MediaContainer(title1=dirTitle)
+	dir = MediaContainer(title2=sender.itemTitle)
 	
 	for comic in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
 		comicURL = urlparse.urljoin(archiveURL, comic.get('href'))
