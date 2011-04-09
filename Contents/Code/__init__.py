@@ -877,7 +877,24 @@ def MysteryBabylon(sender):
 	if Prefs['oldestFirst'] != hasOldestFirst:
 		dir.Reverse()
 	return dir
+
+####################################################################################################
+
+def NoNeedForBushido(sender):
+	archiveURL = 'http://noneedforbushido.com/archive/'
+	archiveXPath = '//select[@name="comic-select"]/option'
+	imgXPath = '//div[@class="comics"]/img'
+	hasOldestFirst = False
 	
+	dir = MediaContainer(title2=sender.itemTitle)
+	for item in HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[1:]:
+		title = item.text
+		comicURL = item.get('value')
+		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
+	if Prefs['oldestFirst'] != hasOldestFirst:
+		dir.Reverse()
+	return dir	
+		
 ####################################################################################################
 
 def PeterAndCompany(sender):
@@ -1280,6 +1297,7 @@ def getComicList():
 		[MenageATrois, "Menage a Trois", "Mature", "Set in Montreal, the finest bohemian city in North America, Menage a 3 follows the lives of comic book geek Gary and his way-sexier-than-he-is roomates in their Montreal tight-as-a-sandwhich apartment; where the walls are so thin there are virtually no barriers between their rooms."],
 		[Misfile, "Misfile", "Manga", "A comedy about how a pothead angel messes up two distinctively different people's lives. A car-loving boy turned into a girl, and a girl who lost two years of her life. Now they must stick together to fix their problems"],
 		[MysteryBabylon, 'Mystery Babylon', 'Manga', 'Kick Girl, otherwise known as the villainous harlot "Mystery Babylon" from Revelations, seems intent on keeping the seal to the Pit closed. But can she really overcome the thousand year prophecy and keep Lucifer and his army of demons from breaking free?'],
+		[NoNeedForBushido, 'No Need for Bushido', 'Manga', 'Join a clumsy samurai, an angry princess, a blind monk, and a drunk swordsman as they travel through fuedel japan fighting ninjas, bandits but mostly each other.'],
 		[PeterAndCompany, "Peter and Company", "Furry", "Peter, an adolescent cat, is having difficulty keeping friends when suddenly a new friend walks into his life in the form of Seth, a white-suited duck. Peter enjoys spending time with Seth, but soon realizes that he is the only one who can see him. Seth is known simply as a 'Guardian.' Other characters have Guardians as well, but the only people who can see them are the children who are already made aware of them."],
 		[PVPOnline, 'PVP Online', 'Workplace', "PvP Online is a comic about the everyday going-on's at the headquarters of a video game magazine. It has lots of humorous references to recent games, movies, and other electronic entertainment. The dialogue is witty and the characters are intriguing and hilarious."],
 		[QuestionableContent, "Questionable Content", "Geeky", "The plot centers on Marten, who is your average frustrated 20-something music nerd, his anthropomorphic PC named Pintsize, and Faye, a somewhat mysterious girl who moved in with him after she accidentally burned her apartment building down while trying to make toast. Lately Marten's friend Steve and Faye's boss Dora have come into the story a little more frequently, ensuring that things will stay nice and complicated."],
