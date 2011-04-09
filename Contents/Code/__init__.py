@@ -419,6 +419,26 @@ def EV(sender):
 
 ####################################################################################################
 
+def ElGoonishShive(sender):
+	archiveURL = 'http://www.egscomics.com/archives.php?displaymode=cal&start=0&count=x&year=%i'
+	archiveXPath = '//table[@class="calendar"]//a'
+	imgXPath = '//div[@class="comic2"]/img'
+	hasOldestFirst = True
+	
+	dir = MediaContainer(title2=sender.itemTitle)
+	for year in range(2002, datetime.datetime.now().year + 1):
+		for comic in HTML.ElementFromURL(archiveURL % year).xpath(archiveXPath):
+			comicURL = urlparse.urljoin(archiveURL % year, comic.get('href'))
+			title = comicURL.split('=')[-1]
+			dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
+	if Prefs['oldestFirst'] != hasOldestFirst:
+			dir.Reverse()
+	
+	return dir
+	
+
+####################################################################################################
+
 def FlakyPastry(sender):
 	dirTitle = 'Flaky Pastry'
 	archiveURL = 'http://flakypastry.runningwithpencils.com/archive.php'
@@ -1179,6 +1199,7 @@ def getComicList():
 		[DuelingAnalogs, "Dueling Analogs", "icon-DuelingAnalogs.png", "art-DuelingAnalogs.png", "Gaming", "Dueling Analogs is a color semi-weekly webcomic that lampoons the characters, culture and subtext of modern gaming culture."],
 		[EerieCuties, "Eerie Cuties", "icon-EerieCuties.png", "art-EerieCuties.png", "Quirky", "Eerie Cuties is a comedy horror meets cute. The cast consists of teenage monsters in high school. By Giz (artist/co-writer of Menage a 3)"],
 		[ErrantStory, "Errant Story", "icon-ErrantStory.png", "art-ErrantStory.png", "Fantasy", "Errant Story is a tongue-in-cheek fantasy adventure set in a world of hired guns, ninja time mages, and genocidal elves, with the occasional sarcastic flying cat thrown in for good measure.\n\nAs the one and only teenaged half elf in her entire country, Meji Hinadori is pretty sure her life sucks. She can't seem to make any friends her own age, her grades at mage school are a flaming wreck (literally!), and it even looks like she'll be disowned if she can't ace some impossibly amazing senior project... like, say, becoming an insane, all-powerful demigoddess and enslaving all of reality. That shouldn't be too hard, right?"],  
+		[ElGoonishShive, 'El Goonish Shive', None, None, 'Quirky', 'A strange comic about a group of teenagers and the bizarre, often supernatural, situations that they face. Includes a continuing complex storyline with non-linear joke comics on the side. WARNING: routinely ignores the laws of Physics'],
 		[EV, "+EV", "icon-EV.png", "art-EV.png", "Gaming", "+EV is a poker comic that runs MWF. The title means 'positive expected value,' a poker/gambling term meaning a profitable play or bet. It's a humor strip about a guy who quit his job to play online poker and how that affects his family life."],
 		#[ExterminatusNow, "Exterminatus Now", "icon-ExterminatusNow.png", "art-ExterminatusNow.png", "Furry", "Follow the missions and lives of four daemon-hunters: Eastwood, Virus, Rogue, and Lothar, as they fight for freedom, liberty, and the pursuit of coffee."],
 		[FlakyPastry, "Flaky Pastry", "icon-FlakyPastry.png", "art-FlakyPastry.png", "Quirky", "The unusual life and hijinks of roommates Nitrine, Marelle and Zintiel; a roguish goblin, inquisitive catgirl and insane elf, in a world of randomness and fattening desserts."],
