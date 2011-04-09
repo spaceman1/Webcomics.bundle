@@ -113,7 +113,25 @@ def AppleGeeksLite(sender):
 	
 	return dir
 	
-	####################################################################################################  
+####################################################################################################  
+
+def AwkwardZombie(sender):
+	archiveURL = 'http://www.awkwardzombie.com/index.php?page=1'
+	archiveXPath = '//div[@id="archive"]/table/tr'
+	imgXPath = '//div[@id="comic"]/img'
+	hasOldestFirst = False
+	
+	dir = MediaContainer(title2=sender.itemTitle)
+	for item in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		title = item.xpath('./td[1]')[0].text.split(':')[0]
+		comicURL = urlparse.urljoin(archiveURL, item.xpath('./td[2]/a')[0].get('href'))
+		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
+	if Prefs['oldestFirst'] != hasOldestFirst:
+		dir.Reverse()
+	
+	return dir
+
+####################################################################################################  
 	
 def BetweenFailures(sender):
 	# TODO: make progressive
@@ -1189,6 +1207,7 @@ def getComicList():
 		[EightBitTheater, "8-bit Theater", "icon-8BitTheater.png", "art-8BitTheater.png", "Fantasy", "Best description is probably a Final Fantasy parody. We're talking old-school Final Fantasy, with the main characters being Fighter, Red Mage, Theif, and Black Mage. Supposedly, they're destined to save the world. But one's an idiot, another's considered delirious, the third a greedy kleptomaniac, and the final one a stabby, murderous psychopath. Nothing seems to go right for them, but the result is pure comedy gold. If you don't find this at least mildly funny, check yourself into an asylum. And last but not least, a quote:\n\"What part of being stabbed do you not understand?\" - Black Mage"],
 		[AppleGeeks, "Apple Geeks", "icon-AppleGeeks.png", "art-AppleGeeks.png", "Geeky", "Follow the adventue's of Hawk as he struggles to survive as a Mac user in a World ruled by Windows."],
 		[AppleGeeksLite, "AppleGeeks Lite", "icon-AppleGeeksLite.png", "art-AppleGeeksLite.png", "Geeky", "Follow the adventue's of Hawk as he struggles to survive as a Mac user in a World ruled by Windows."],
+		[AwkwardZombie, 'Awkward Zombie', None, None, 'Gaming', 'A comic featuring the insane antics of popular gaming characters in the world of Nintendo.'],
 		[BetweenFailures, "Between Failures", "icon-BetweenFailures.png", "art-BetweenFailures.png", "Workplace", "Thomas Blackwell is a clerk in a store. He believes that 'life is what happens, between failures.' This is the story of his life & friends."],
 		[Catena, "Catena", "icon-Catena.png", "art-Catena.png", "Furry", "A house full of cats..."],
 		[CtrlAltDel, "Ctrl+Alt+Del", "icon-CtrlAltDel.png", "art-CtrlAltDel.png", "Gaming", "Two die-hard gaming roommates and a Linux user take everyday challenges to the extreme. Ethan, the eccentric gamer with severe illusions of granduer, at the same time being completely out of touch with reality is friendly yet dangerous. Lucas is the brains behind every operation, often keeping a close eye on Ethan and helping him out of trouble, he much prefers the X-Box to any other console, as does Ethan. Scott is the third roommate, not quite a gamer, but an expert with Linux, he is very rarely seen and owns a penguin, a la Linux logo. Lilah is Ethan's girlfriend, Nobody really knows how he is ABLE to get a girlfriend, but Lilah is brainy, beautiful and owns in UT2004."],
