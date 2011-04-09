@@ -677,6 +677,23 @@ def GunnerkriggCourt(sender):
 	
 ####################################################################################################
 
+def HotMess(sender):
+	archiveURL = 'http://hotmesscomic.com/?page_id=401'
+	archiveXPath = '//td[@class="archive-title"]/a'
+	imgXPath = '//div[@id="comic-1"]/img'
+	hasOldestFirst = False
+
+	dir = MediaContainer(title2=sender)
+	for item in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		title = item.text
+		comicURL = item.get('href')
+		dir.Append(Function(PhotoItem(getComicFromPage, title=title, thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
+	if Prefs['oldestFirst'] != hasOldestFirst:
+		dir.Reverse()
+	return dir	
+
+####################################################################################################
+
 def LasLindas(sender):
 	dirTitle = 'Las Lindas'
 	archiveURL = 'http://laslindas.katbox.net/?page_id=2&cat=5'
@@ -1269,6 +1286,7 @@ def getComicList():
 		[Goblins, "Goblins", "icon-Goblins.png", "art-Goblins.png", "Fantasy", "A D&D satire comic featuring... well.. a buncha goblins."],
 		[Goats, "Goats", "icon-Goats.png", "art-Goats.png", "Quirky", "Q: If Diablo is a satanist, and Toothgnip is a goat, when are we gonne see Diablo chasing the goat around trying to sacrifice him?? C'mon, do the math!!\n\nA: Two words: sweeps week"],
 		[GunnerkriggCourt, "Gunnerkrigg Court", "icon-GunnerkriggCourt.png", "art-GunnerkriggCourt.png", "Manga", "A young girl with a mysterious past explores the secrets of her strange boarding school. Now updated Mondays, Wednesdays and Fridays."],
+		[HotMess, 'Hot Mess', None, None, 'Quirky', 'Are you a Hot Mess? Anna sure is. Like all of us, Anna has a constant war raging inside her head, with all the different sides to her conscious vying for attention. In Hot Mess we’ll get to see these different sides of Anna’s psyche – from the manic-depressive id, to the self-righteous superego – represented by different animals who each voice a specific point of view.'],
 		[LasLindas, "Las Lindas", "icon-LasLindas.png", "art-LasLindas.png", "Furry", "Las Lindas is all about the personal development of the main character, Mora Linda. She inherits her dilapidated family farm after her parents passing and strives to restore it in her memory. After attempting the task alone, she hires a cast of characters through the story which shift the genre of the comic from relationship (slice of life) drama to very light hearted and silly comedy. Watch as Mora attempts to restore her farm, fight her childhood rival, handle three trouble making cats, make a new boyfriend while trying to subdue her fanatical ex, and much more."],
 		[LeastICouldDo, "Least I Could do", "icon-LeastICouldDo.png", "art-LeastICouldDo.png", "Mature", "Award winning daily webcomic by Ryan Sohmer and Lar deSouza, following the life and antics of Rayne and those who surround him."],
 		#[Level99, "Level 99", "icon-Level99.png", "art-Level99.png", "Geeky", "A guy and a girl who make gags about anime and gaming. Mostly gag-a-day, but some contuity exists as well."],
