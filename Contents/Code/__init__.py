@@ -466,6 +466,24 @@ def Flipside(sender):
 
 ####################################################################################################
 
+def Friday4Koma(sender):
+	archiveURL = 'http://omaketheater.com/comics/'
+	archiveXPath = '//li[@class="previous"]/a'
+	imgXPath = '//div[@id="comic"]/img'
+	hasOldestFirst = True
+	
+	penultimateIndex = int(HTML.ElementFromURL(archiveURL).xpath(archiveXPath)[0].get('href').split('/')[-2])
+	
+	dir = MediaContainer(title2=sender.itemTitle)
+	for index in range(1, penultimateIndex + 2):
+		comicURL = 'http://omaketheater.com/comic/%i/' % index
+		dir.Append(Function(PhotoItem(getComicFromPage, title=str(index), thumb=Function(getComicFromPage, url=comicURL, xpath=imgXPath)), url=comicURL, xpath=imgXPath))
+	if Prefs['oldestFirst'] != hasOldestFirst:
+		dir.Reverse()
+	return dir
+
+####################################################################################################
+
 def GingersBread(sender):
 	dirTitle = "Ginger's Bread"
 	archiveURL = 'http://www.gingersbread.com/archive/?archive_year=%i'
@@ -1165,7 +1183,7 @@ def getComicList():
 		#[ExterminatusNow, "Exterminatus Now", "icon-ExterminatusNow.png", "art-ExterminatusNow.png", "Furry", "Follow the missions and lives of four daemon-hunters: Eastwood, Virus, Rogue, and Lothar, as they fight for freedom, liberty, and the pursuit of coffee."],
 		[FlakyPastry, "Flaky Pastry", "icon-FlakyPastry.png", "art-FlakyPastry.png", "Quirky", "The unusual life and hijinks of roommates Nitrine, Marelle and Zintiel; a roguish goblin, inquisitive catgirl and insane elf, in a world of randomness and fattening desserts."],
 		[Flipside, "Flipside", "icon-Flipside.png", "art-Flipside.png", "Fantasy", "This is no ordinary webcomic! Follow the adventures of two women: Maytag, a nymphmaniac jester girl with split personalities; and Bernadette, a female knight and bodyguard."],
-
+		[Friday4Koma, 'Friday 4Koma', None, None, 'Manga', 'Pure randomness in a 4koma format. Updates every Friday.'],
 		[GingersBread, "Gingers Bread", "icon-GingersBread.png", "art-GingersBread.png", "Geeky", "Ginger's Bread is the story of Ginger and her friends just trying to get by in life. Ginger is recently unemployed and is now on the hunt for a new job."],
 		[GirlGenius, "Girl Genius", "icon-GirlGenius.png", "art-GirlGenius.png", "Fantasy", "Agatha Clay is a young Mad Scientist (or 'Spark' to be polite.) Traveling with her is Krosp I, a 'failed experiment' created to be the King of the Cats. Agatha is also the last of the famous Heterodyne family-beloved heroes who disappeared under mysterious circumstances many years ago. Folk legend claims that they will someday return."],
 		[GirlsWithSlingshots, "Girls with Slingshots", "icon-GirlsWithSlingshots.png", "art-GirlsWithSlingshots.png", "Quirky", "The everyday adventures of Hazel, the cynical writer who hasn't met a bottle she doesn't like, Jamie, her volumptous and optimistic best friend, the men in her life, and the women in theirs."],
