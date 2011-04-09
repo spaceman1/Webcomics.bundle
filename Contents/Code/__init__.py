@@ -1153,6 +1153,26 @@ def getVGCats(url, sender=None):
 
 ####################################################################################################
 
+def WhatsShakin(sender):
+	archiveURL = 'http://whatsshakincomic.com/archive/'
+	archiveXPath = '//div[@class="comicarchiveframe"]/a'
+	archive2XPath = '//div[@class="comicarchiveframe"]/a/img'
+	base = 'http://whatsshakincomic.com/comics/'
+	hasOldestFirst = True
+	
+	dir = MediaContainer(title2=sender.itemTitle)
+	for archive in HTML.ElementFromURL(archiveURL).xpath(archiveXPath):
+		for item in HTML.ElementFromURL(archive.get('href')).xpath(archive2XPath):
+			title = item.get('alt')
+			thumb = item.get('src')
+			comicURL = base + thumb.split('/')[-1]
+			dir.Append(PhotoItem(comicURL, title=title, thumb=thumb))
+	if Prefs['oldestFirst'] != hasOldestFirst:
+		dir.Reverse()
+	return dir	
+
+####################################################################################################
+
 def XKCD(sender):
 	dirTitle = 'XKCD'
 	archiveURL = 'http://xkcd.com/archive/'
@@ -1250,6 +1270,7 @@ def getComicList():
 		[TheSpaceBetween, "The Space Between", "icon-TheSpaceBetween.png", "art-TheSpaceBetween.png", "Manga", "Music, sports, movies, games, we cover it all, and bash it constantly. Updates Mondays and Fridays (usually)."],
 		[ThreePanelSoul, "Three Panel Soul", "icon-ThreePanelSoul.png", "art-ThreePanelSoul.png", "Geeky", "From the guys who brought you www.machall.com, Matt Boyd and Ian McConville (sp? sorry :( ) are back with another interestingly amusing comic."],
 		[VGCats, 'VG Cats', None, None, 'Gaming', 'This comic deals with the stupidities of some video games and the hilarious situations that ensue due to them. It also chronicles the life of two very bizarre cats in their daily adventures. All in all, a really funny read.'],
+		[WhatsShakin, "What's Shakin", None, None, 'Fantasy', 'A fantasy comic featuring Coffinshaker, Nith, and Ell. Coffin, a born fire mage and last of his kind, travels with his two mage friends (ok, Nith is a battlemage, but close enough) to uncover a wicked plot to use his unique abilities to power the evil "fire god" Fred. Of course, they run into enemies of the mages and also make new friends along the way.'],
 		[TwoKinds, "TwoKinds", "icon-TwoKinds.png", "art-TwoKinds.png", "Furry", "Waking up without any memory of who he is, the human Trace Legacy soon finds himself in a battle between three races: the human, and catlike Keidran, and the doglike Basitin. Even as he begins to form a relationship with the Keidran Flora, Trace begins to realize what he once was: a Templar, one who kills Keidran."],
 		[XKCD, "XKCD", "icon-XKCD.png", "art-XKCD.png", "Quirky", "A webcomic of romance, sarcasm, math, and language."],
 	]
